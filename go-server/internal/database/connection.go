@@ -97,7 +97,7 @@ func AutoMigrate() error {
 		`CREATE INDEX IF NOT EXISTS idx_movies_release_year ON movies ("releaseYear")`,
 		`CREATE INDEX IF NOT EXISTS idx_movies_title_lower ON movies (LOWER(title))`,
 		`CREATE INDEX IF NOT EXISTS idx_movies_title_trgm ON movies USING gin (LOWER(title) gin_trgm_ops)`,
-		`CREATE INDEX IF NOT EXISTS idx_static_pages_slug_published ON static_pages (slug, "isPublished")`,
+		`CREATE INDEX IF NOT EXISTS idx_static_pages_slug_published ON static_pages (slug, "is_published")`,
 		`CREATE INDEX IF NOT EXISTS idx_trending_movies_order ON trending_movies ("order")`,
 	}
 	for _, statement := range indexes {
