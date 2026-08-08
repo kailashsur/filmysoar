@@ -6,7 +6,7 @@ server.exe
 *.dll
 *.so
 *.dylib
-backup/
+
 
 
 # Test binary
@@ -40,11 +40,10 @@ logs/
 *.log
 
 # Local database exports and backups
-backup/
-backups/
+
 *.sql
 *.sql.gz
-*.dump
+
 
 # IDE
 .vscode/
