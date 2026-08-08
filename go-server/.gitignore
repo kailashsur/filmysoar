@@ -41,7 +41,7 @@ logs/
 
 # Local database exports and backups
 
-*.sql
+
 *.sql.gz
 
 
