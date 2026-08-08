@@ -1,0 +1,279 @@
+---
+import { siteConfig, siteName, siteThemeColor } from "../config/site";
+
+const { page } = Astro.props;
+---
+
+<!doctype html>
+<html lang={siteConfig.site.language}>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,viewport-fit=cover"
+        />
+        <meta name="description" content={page.intro} />
+        <meta name="theme-color" content={siteThemeColor} />
+        <title>{page.title} - {siteName}</title>
+    </head>
+    <body>
+        <div class="noise"></div>
+        <header class="shell nav">
+            <a class="brand" href="/" aria-label={`${siteName} home`}>
+                <span class="mark">{siteConfig.branding.logoMark}</span>
+                <span>{siteConfig.branding.logoText}</span>
+            </a>
+            <nav>
+                <a href="/#discover">Discover</a>
+                <a href="/#trending">Trending</a>
+                <a class="nav-pill" href="/#latest">Explore archive</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="shell intro">
+                <a class="back-link" href="/">Back to home</a>
+                <p class="kicker">{page.eyebrow}</p>
+                <h1>{page.title}</h1>
+                <p>{page.intro}</p>
+                {
+                    page.email ? (
+                        <a class="email" href={`mailto:${page.email}`}>
+                            {page.email}
+                        </a>
+                    ) : null
+                }
+            </section>
+
+            <section class="shell content">
+                {
+                    page.sections?.map((section) => (
+                        <article>
+                            <h2>{section.heading}</h2>
+                            <p>{section.body}</p>
+                        </article>
+                    ))
+                }
+            </section>
+        </main>
+
+        <footer class="shell footer">
+            <span>{siteConfig.branding.logoText} - made for movie people</span>
+            <small>{siteConfig.content.copyrightText}</small>
+            <nav class="footer-links">
+                <a href="/about">About</a>
+                <a href="/contact">Contact</a>
+                <a href="/privacy-policy">Privacy</a>
+                <a href="/dmca">DMCA</a>
+                <a href="/movie-request">Request</a>
+            </nav>
+        </footer>
+    </body>
+</html>
+
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+    :global(*) {
+        box-sizing: border-box;
+    }
+
+    :global(body) {
+        margin: 0;
+        background: #e7ebef;
+        color: #242832;
+        font-family: Manrope, system-ui, sans-serif;
+        overflow-x: hidden;
+    }
+
+    :global(a) {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .noise {
+        position: fixed;
+        inset: 0;
+        opacity: 0.025;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+    }
+
+    .shell {
+        width: min(860px, calc(100% - 64px));
+        margin: auto;
+    }
+
+    .nav {
+        width: min(1180px, calc(100% - 64px));
+        height: 105px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 2;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+    }
+
+    .mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: #252a33;
+        color: #f2a17e;
+        box-shadow: 7px 7px 14px #c5cbd1, -6px -6px 13px #fff;
+        font-size: 18px;
+    }
+
+    nav {
+        display: flex;
+        gap: 28px;
+        align-items: center;
+        font-size: 12px;
+        color: #6c7683;
+    }
+
+    .nav-pill {
+        background: #252a33;
+        color: #fff;
+        border-radius: 100px;
+        padding: 13px 18px;
+        box-shadow: 7px 7px 14px #c5cbd1, -6px -6px 13px #fff;
+    }
+
+    .intro {
+        padding: 70px 0 76px;
+        border-bottom: 1px solid #d2d8de;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 34px;
+        color: #7d8793;
+        font: 500 11px DM Mono, monospace;
+    }
+
+    .kicker {
+        margin: 0;
+        color: #8a95a2;
+        font: 500 10px/1 DM Mono, monospace;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+    }
+
+    .intro h1 {
+        margin: 22px 0 18px;
+        color: #252a33;
+        font-size: clamp(48px, 7vw, 82px);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+    }
+
+    .intro p:not(.kicker) {
+        max-width: 650px;
+        margin: 0;
+        color: #7d8793;
+        font-size: 16px;
+        line-height: 1.8;
+    }
+
+    .email {
+        display: inline-flex;
+        margin-top: 24px;
+        min-height: 44px;
+        align-items: center;
+        border-radius: 100px;
+        padding: 0 18px;
+        background: #e7ebef;
+        color: #242832;
+        box-shadow: 5px 5px 10px #c9cfd5, -5px -5px 10px #fff;
+        font-weight: 800;
+        font-size: 13px;
+    }
+
+    .content {
+        padding: 52px 0 90px;
+    }
+
+    .content article {
+        padding: 26px 0;
+        border-bottom: 1px solid #d2d8de;
+    }
+
+    .content h2 {
+        margin: 0 0 10px;
+        color: #252a33;
+        font-size: 24px;
+        line-height: 1.2;
+        letter-spacing: -0.03em;
+    }
+
+    .content p {
+        margin: 0;
+        color: #68778c;
+        font-size: 15px;
+        line-height: 1.85;
+    }
+
+    .footer {
+        width: min(1180px, calc(100% - 64px));
+        border-top: 1px solid #d2d8de;
+        padding: 26px 0 36px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        color: #8a95a2;
+        font: 12px DM Mono, monospace;
+    }
+
+    .footer span {
+        flex: 1;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+        font: 13px Manrope, system-ui, sans-serif;
+    }
+
+    @media (max-width: 800px) {
+        .shell,
+        .nav,
+        .footer {
+            width: min(100% - 28px, 1180px);
+        }
+
+        .nav {
+            height: 86px;
+        }
+
+        nav a:not(.nav-pill) {
+            display: none;
+        }
+
+        .intro {
+            padding: 46px 0 58px;
+        }
+
+        .intro h1 {
+            font-size: 44px;
+            letter-spacing: -0.05em;
+        }
+
+        .footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>

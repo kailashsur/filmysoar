@@ -1,0 +1,29 @@
+[Unit]
+Description=FilmyFly Go Fiber Application
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/filmyfly
+ExecStart=/opt/filmyfly/filmyfly
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/filmyfly/app.log
+StandardError=append:/var/log/filmyfly/error.log
+
+# Environment variables
+Environment="PORT=3000"
+EnvironmentFile=/opt/filmyfly/.env
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/filmyfly /opt/filmyfly/logs
+
+[Install]
+WantedBy=multi-user.target

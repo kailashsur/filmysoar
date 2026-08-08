@@ -1,0 +1,330 @@
+﻿---
+import {
+    siteConfig,
+    siteName,
+    siteDescription,
+    siteTitle,
+    siteThemeColor,
+    copyrightText,
+} from "../config/site";
+
+const apiBase = (
+    import.meta.env.PUBLIC_API_BASE_URL || "http://127.0.0.1:3000"
+).replace(/\/$/, "");
+const emptyHome = {
+    categories: [],
+    pagination: { total: 0, totalPages: 0 },
+    recentMovies: [],
+    trendingMovies: [],
+};
+const currentPage = Math.max(
+    1,
+    Number(Astro.url.searchParams.get("page") || 1) || 1,
+);
+const getHome = async () => {
+    try {
+        const response = await fetch(
+            `${apiBase}/api/home?page=${currentPage}`,
+            { method: "GET", signal: AbortSignal.timeout(3000) },
+        );
+        if (!response.ok) throw new Error("home api");
+        const result = await response.json();
+        return result.data ?? emptyHome;
+    } catch {
+        return emptyHome;
+    }
+};
+const home = await getHome();
+const movies = home.recentMovies ?? [];
+const trending = home.trendingMovies ?? [];
+const categories = home.categories ?? [];
+const name = (s = "") =>
+    s
+        .replace(/\s*\([^)]*\)/g, "")
+        .replace(
+            /\s+(Dual Audio|Hindi|English|Movie|Web Series|HD|ESub|BluRay|HDRip).*$/i,
+            "",
+        )
+        .trim();
+const genre = (s = "") =>
+    s
+        .replace(/\s*\[.*?\]/g, "")
+        .replace(/ Movies?$/i, "")
+        .trim();
+const link = (m) => `/movie/${m.slug}`;
+const total = home.pagination?.total?.toLocaleString() ?? "0";
+const totalPages = Math.max(1, Number(home.pagination?.totalPages || 1));
+const pageHref = (pageNumber) => `/?page=${pageNumber}#latest`;
+const pages = Array.from(
+    new Set(
+        [
+            1,
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            totalPages,
+        ].filter((pageNumber) => pageNumber >= 1 && pageNumber <= totalPages),
+    ),
+).sort((a, b) => a - b);
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport"  content="width=device-width,initial-scale=1,viewport-fit=cover" />
+        <meta
+            name="description"
+            content="FilmyFly — a living archive for curious movie people."
+        />
+     
+        <meta name="description" content={siteDescription} />
+        <meta name="theme-color" content={siteThemeColor} />
+
+        <title>
+            {siteTitle || `${siteName} - Discover your next movie`}
+        </title>
+    </head>
+    <body>
+        <div class="noise"></div>
+        <header class="shell nav">
+            <a class="brand" href="/"
+                ><span class="mark">{siteConfig.branding.logoMark}<span>↗</span></span><span>{siteConfig.branding.logoText}</span
+                ></a
+            >
+            <nav>
+                <a href="#discover">Discover</a><a href="#trending">Trending</a
+                ><a class="nav-pill" href="#latest">Explore archive <b>↗</b></a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="shell hero">
+                <form class="search hero-search" id="movie-search-form"><span>?</span><input id="search" name="q" type="search" placeholder="Search a title, genre, feeling..." /><button type="submit">Search</button></form>
+                <div class="hero-copy">
+                    <p class="kicker"><i></i> The cinema is open</p>
+                    <h1>Stories that<br /><em>move</em> you.</h1>
+                    <p class="lede">
+                        A considered collection of films and series for the
+                        relentlessly curious. Find the one that stays with you.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="primary" href="#latest"
+                            >Start exploring <span>↓</span></a
+                        ><a class="quiet" href="#discover"
+                            >Browse by mood <span>↗</span></a>
+                    </div>
+                    <div class="proof">
+                        <div class="avatars">
+                            <span>✦</span><span>◒</span><span>✺</span>
+                        </div><p>
+                            <strong id="hero-count">2,458</strong> stories<br
+                            /><small>and counting</small>
+                        </p>
+                    </div>
+                </div>
+                <div class="hero-stage" aria-hidden="true">
+                    <div class="halo halo-a"></div><div class="halo halo-b">
+                    </div><div class="poster-hero">
+                        <div class="poster-glow"></div><span
+                            class="poster-label">FILMY<br />FLY</span
+                        ><small>EST. 2025</small>
+                    </div>
+                    <div class="orbit-card card-top">
+                        <span>01</span><strong
+                            >Tonight's<br />perfect watch</strong
+                        ><b>↗</b>
+                    </div>
+                    <div class="orbit-card card-bottom">
+                        <span class="live-dot"></span> Curated daily <b>✦</b>
+                    </div>
+                </div>
+            </section>
+
+            <section id="discover" class="shell discover">
+                <div class="section-intro">
+                    <p class="kicker">01 / Explore the archive</p><h2>
+                        Where do you want<br /><em>to go?</em>
+                    </h2>
+                </div>
+                <label class="search"
+                    ><span>⌕</span><input
+                        id="category-search"
+                        type="search"
+                        placeholder="Search a title, genre, feeling..."
+                    /></label
+                >
+                <div id="chips" class="chips">
+                    {categories.length ? categories.map((category) => (
+                        <a class="chip" href={`/categories/${category.slug}`}>
+                            <span class="chip-dot"></span>
+                            {genre(category.name)}
+                            {category._count?.movies ? <small>{category._count.movies}</small> : null}
+                        </a>
+                    )) : <p class="empty">No categories available.</p>}
+                </div>
+            </section>
+
+            <section id="trending" class="shell rail-section">
+                <div class="rail-head">
+                    <div>
+                        <p class="kicker">02 / Right now</p><h2>
+                            Trending <em>now</em>
+                        </h2>
+                    </div><p class="rail-note">
+                        The stories everyone's<br />talking about <span>→</span>
+                    </p>
+                </div><div id="trending-grid" class="grid">
+                    {trending.length ? trending.slice(0, 10).map((m) => (
+                        <a class="movie-card" href={link(m)}>
+                            <div class="thumb">
+                                {m.thumbnail ? <img src={m.thumbnail} alt={m.title} loading="lazy" /> : <span>{siteConfig.branding.logoText}</span>}
+                                <b class="year">{m.releaseYear || "-"}</b>
+                            </div>
+                            <div class="movie-info"><h3>{name(m.title)}</h3><p>{genre(m.genre || "Feature film")} <span>·</span> {m.duration || "-"}</p></div>
+                        </a>
+                    )) : <p class="empty">No trending movies found.</p>}
+                </div>
+            </section>
+            <section id="latest" class="shell rail-section latest">
+                <div class="rail-head">
+                    <div>
+                        <p class="kicker">03 / Fresh arrivals</p><h2>
+                            Latest <em>releases</em>
+                        </h2>
+                    </div><p class="archive-count">
+                        <strong id="total-count">2,458</strong><br />titles in
+                        the archive
+                    </p>
+                </div><div id="latest-grid" class="grid">
+                    {movies.length ? movies.map((m, i) => (
+                        <a class="movie-card" href={link(m)}>
+                            <div class="thumb">
+                                {m.thumbnail ? <img src={m.thumbnail} alt={m.title} loading={i < 5 ? "eager" : "lazy"} /> : <span>{siteConfig.branding.logoText}</span>}
+                                <b class="year">{m.releaseYear || "-"}</b>
+                            </div>
+                            <div class="movie-info"><h3>{name(m.title)}</h3><p>{genre(m.genre || "Feature film")} <span>·</span> {m.duration || "-"}</p></div>
+                        </a>
+                    )) : <p class="empty">No latest movies found.</p>}
+                </div>
+                {totalPages > 1 && (
+                    <nav class="pagination" aria-label="Latest releases pagination">
+                        {currentPage > 1 ? (
+                            <a class="page-control" href={pageHref(currentPage - 1)}>Previous</a>
+                        ) : (
+                            <span class="page-control is-disabled">Previous</span>
+                        )}
+                        <div class="page-numbers">
+                            {pages.map((pageNumber, index) => (
+                                <>
+                                    {index > 0 && pageNumber - pages[index - 1] > 1 ? (
+                                        <span class="dots">...</span>
+                                    ) : null}
+                                    <a
+                                        class={pageNumber === currentPage ? "active" : ""}
+                                        href={pageHref(pageNumber)}
+                                        aria-current={pageNumber === currentPage ? "page" : undefined}
+                                    >
+                                        {pageNumber}
+                                    </a>
+                                </>
+                            ))}
+                        </div>
+                        {currentPage < totalPages ? (
+                            <a class="page-control" href={pageHref(currentPage + 1)}>Next</a>
+                        ) : (
+                            <span class="page-control is-disabled">Next</span>
+                        )}
+                    </nav>
+                )}
+            </section>
+        </main>
+        <footer class="shell footer">
+            <span>{siteConfig.branding.logoText} <i>·</i> made for movie people</span>
+            
+        </footer>
+        <button class="floating-search" type="button" aria-label="Go to search">
+<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 50 50">
+<path d="M 21 4 C 11.082241 4 3 12.082241 3 22 C 3 31.917759 11.082241 40 21 40 C 24.62177 40 27.99231 38.91393 30.820312 37.0625 L 43.378906 49.621094 L 47.621094 45.378906 L 35.224609 32.982422 C 37.581469 29.938384 39 26.13473 39 22 C 39 12.082241 30.917759 4 21 4 z M 21 8 C 28.756241 8 35 14.243759 35 22 C 35 29.756241 28.756241 36 21 36 C 13.243759 36 7 29.756241 7 22 C 7 14.243759 13.243759 8 21 8 z"></path>
+</svg>
+        </button>
+
+        <script define:vars={{ movieData: movies }}>
+            const gsap = window.gsap;
+            const clean = (v = "") => v.replace(/\s+/g, " ").trim();
+            let movies = movieData;
+            const card = (m) =>
+                `<article class="movie-card"><div class="thumb">${m.thumbnail ? `<img src="${m.thumbnail}" alt="${clean(m.title)} poster" loading="lazy">` : `<span>${siteConfig.branding.logoText}</span>`}<b class="year">${m.releaseYear || "—"}</b></div><div class="movie-info"><h3>${clean(m.title)}</h3><p>${clean(m.genre || "Feature film")} <span>·</span> ${m.duration || "—"}</p></div></article>`;
+            const render = (id, list) => {
+                const el = document.querySelector(id);
+                el.classList.remove("loading");
+                el.innerHTML = list.length
+                    ? list.slice(0, 10).map(card).join("")
+                    : '<p class="empty">No stories found.</p>';
+                if (gsap) gsap.from(`${id} .movie-card`, {
+                    y: 30, opacity: 0, stagger: 0.07, duration: 0.7, ease: "power3.out",
+                });
+            };
+            document.querySelector("#movie-search-form")?.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const query = document.querySelector("#search")?.value.trim();
+                if (query) window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            });
+            document.querySelector(".floating-search")?.addEventListener("click", () => {
+                document.querySelector("#search")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => document.querySelector("#search")?.focus({ preventScroll: true }), 400);
+            });
+            if (gsap) {
+                const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
+            intro
+                .from(".nav", { y: -20, opacity: 0, duration: 0.8 })
+                .from(
+                    ".hero-copy > *",
+                    { y: 26, opacity: 0, stagger: 0.1, duration: 0.8 },
+                    "-=.45",
+                )
+                .from(
+                    ".hero-stage",
+                    { scale: 0.9, opacity: 0, duration: 1 },
+                    "-=.8",
+                );
+            gsap.to(".poster-hero", {
+                y: -13,
+                rotation: 3,
+                duration: 3.5,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut",
+            });
+            gsap.to(".halo-a", {
+                rotation: 360,
+                duration: 24,
+                repeat: -1,
+                ease: "none",
+            });
+            gsap.to(".halo-b", {
+                rotation: -360,
+                duration: 30,
+                repeat: -1,
+                ease: "none",
+            });
+            }
+        </script>
+    </body>
+</html>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+  :global(*){box-sizing:border-box}:global(html){scroll-behavior:smooth}:global(body){margin:0;background:#e7ebef;color:#242832;font-family:Manrope,system-ui,sans-serif;overflow-x:hidden}:global(a){color:inherit;text-decoration:none}.noise{position:fixed;inset:0;opacity:.025;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}.shell{width:min(1180px,calc(100% - 64px));margin:auto}.nav{height:105px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}.brand{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:800;letter-spacing:.18em}.mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#252a33;color:#f2a17e;box-shadow:7px 7px 14px #c5cbd1,-6px -6px 13px #fff;font-size:18px;letter-spacing:-.15em}.mark span{font-size:11px;margin-left:13px;margin-top:-16px;color:#8d99a6}nav{display:flex;gap:28px;align-items:center;font-size:12px;color:#6c7683}nav a:hover{color:#242832}.nav-pill,.primary{background:#252a33;color:#fff!important;border-radius:100px;padding:13px 18px;box-shadow:7px 7px 14px #c5cbd1,-6px -6px 13px #fff}.nav-pill b{color:#f2a17e;margin-left:12px}.hero{min-height:690px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:35px}.kicker{font:500 10px/1 DM Mono,monospace;letter-spacing:.11em;text-transform:uppercase;color:#8a95a2;margin:0}.kicker i{display:inline-block;width:17px;height:1px;background:#ed8863;vertical-align:middle;margin-right:10px}.hero h1{font-size:clamp(60px,8vw,105px);line-height:.92;letter-spacing:-.08em;margin:25px 0;color:#252a33}.hero h1 em,.section-intro h2 em,.rail-head h2 em{font-style:normal;color:#ef8965}.lede{max-width:365px;color:#7d8793;font-size:14px;line-height:1.75}.hero-actions{display:flex;align-items:center;gap:25px;margin-top:32px;font-size:12px;font-weight:700}.primary{display:inline-flex;gap:27px;align-items:center;background:#ed8965;padding:16px 19px}.primary span,.quiet span{font-size:16px;color:#252a33}.quiet{color:#727d89}.proof{display:flex;align-items:center;gap:12px;margin-top:48px}.avatars{display:flex}.avatars span{display:grid;place-items:center;width:29px;height:29px;margin-right:-6px;border:2px solid #e7ebef;border-radius:50%;background:#c8d0d8;color:#fff;font-size:12px}.avatars span:nth-child(2){background:#ed8965}.avatars span:nth-child(3){background:#252a33}.proof p{font:10px DM Mono,monospace;color:#8a95a2;line-height:1.45}.proof strong{color:#252a33;font-size:14px}.proof small{font-size:9px}.hero-stage{height:570px;position:relative;display:grid;place-items:center}.poster-hero{width:250px;height:350px;position:relative;overflow:hidden;transform:rotate(-5deg);border-radius:17px;background:linear-gradient(145deg,#242a35 15%,#f08d6c 115%);box-shadow:25px 29px 40px #bfc6cd,-15px -15px 35px #fff}.poster-glow{position:absolute;width:260px;height:260px;top:42px;left:-28px;border-radius:50%;background:radial-gradient(circle,#ffb291,#de644e 40%,transparent 70%);opacity:.85}.poster-hero:after{content:'';position:absolute;width:120px;height:190px;right:-45px;bottom:-30px;border:1px solid #f6b9a5;border-radius:50%;transform:rotate(33deg)}.poster-label{position:absolute;left:25px;bottom:62px;color:#fff;font-weight:800;font-size:38px;line-height:.82;letter-spacing:-.1em;z-index:1}.poster-hero small{position:absolute;left:25px;bottom:25px;color:#f9c1ad;font:9px DM Mono;z-index:1}.halo{position:absolute;border:1px solid rgba(122,139,157,.4);border-radius:50%}.halo-a{width:490px;height:245px;transform:rotate(-31deg)}.halo-b{width:310px;height:490px;transform:rotate(39deg);border-color:rgba(239,137,101,.35)}.orbit-card{position:absolute;background:#e7ebef;border-radius:14px;box-shadow:10px 12px 20px #c7cdd3,-8px -8px 18px #fff;padding:14px 17px;font-size:11px}.orbit-card span{font:10px DM Mono;color:#ed8965}.orbit-card strong{display:block;margin-top:5px;line-height:1.45}.orbit-card b{position:absolute;right:14px;top:15px;color:#ed8965}.card-top{right:5px;top:102px;min-width:150px}.card-bottom{left:16px;bottom:93px;color:#727d89}.card-bottom b{position:static;margin-left:28px}.live-dot{display:inline-block!important;width:6px;height:6px;border-radius:50%;background:#ed8965;margin-right:7px}.discover{padding:75px 0 40px;border-top:1px solid #d2d8de;display:grid;grid-template-columns:1fr 1fr;gap:15px}.section-intro h2,.rail-head h2{font-size:47px;line-height:1;letter-spacing:-.07em;margin:19px 0 0}.search{align-self:end;display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:12px;box-shadow:inset 5px 5px 11px #cbd1d7,inset -5px -5px 11px #fff;color:#99a3ad}.search input{width:100%;border:0;outline:0;background:transparent;color:#252a33;font:12px Manrope}.chips{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;margin-top:25px}.chip{border:0;border-radius:50px;padding:10px 15px;background:#e7ebef;color:#7c8793;box-shadow:5px 5px 10px #c9cfd5,-5px -5px 10px #fff;font:11px Manrope;cursor:pointer}.chip.active,.chip:hover{background:#252a33;color:#fff}.rail-section{padding:80px 0 0}.rail-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:27px}.rail-head h2{font-size:39px}.rail-note,.archive-count{font:10px/1.6 DM Mono;color:#8a95a2;text-align:right}.rail-note span{color:#ed8965;font-size:18px}.archive-count strong{font:22px Manrope;color:#ed8965}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}.movie-card{padding:9px;border-radius:14px;background:#e7ebef;box-shadow:7px 8px 16px #c8ced4,-7px -7px 16px #fff;transition:transform .3s;cursor:pointer}.movie-card:hover{transform:translateY(-8px)}.thumb{height:255px;border-radius:10px;overflow:hidden;position:relative;background:#ccd3da;display:grid;place-items:center;color:#fff;font:12px DM Mono}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.year{position:absolute;top:9px;right:9px;padding:5px 7px;border-radius:7px;background:rgba(37,42,51,.75);color:#fff;font:9px DM Mono}.movie-info h3{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:13px 4px 5px}.movie-info p{font:9px DM Mono;color:#8a95a2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 4px 4px}.movie-info p span{color:#ed8965}.latest{padding-bottom:100px}.footer{border-top:1px solid #d2d8de;padding:26px 0 36px;display:flex;justify-content:space-between;color:#8a95a2;font:10px DM Mono}.footer i{color:#ed8965;font-style:normal}.footer b{color:#ed8965;margin-left:8px}.empty{color:#8a95a2;font-size:13px}.loading{min-height:120px;color:#8a95a2;font:11px DM Mono}
+  @media(max-width:800px){.shell{width:min(100% - 32px,1180px)}nav a:not(.nav-pill){display:none}.hero{grid-template-columns:1fr;min-height:auto;padding:70px 0 100px}.hero-stage{height:440px;order:-1}.poster-hero{width:190px;height:270px}.halo-a{width:370px}.halo-b{height:380px}.card-top{right:0;top:65px}.card-bottom{left:0;bottom:40px}.discover{display:block}.search{margin-top:32px}.chips{margin-top:22px}.grid{grid-template-columns:repeat(2,1fr)}.thumb{height:245px}.rail-head{align-items:start}.rail-note{display:none}.section-intro h2{font-size:40px}}
+  .grid{grid-template-columns:repeat(5,minmax(0,1fr));align-items:start}.movie-card{min-width:0;width:100%;overflow:hidden}.thumb{height:auto;aspect-ratio:2/3}.movie-info{min-width:0}.movie-info h3,.movie-info p{max-width:100%}
+  @media(max-width:800px){.shell{width:min(100% - 28px,1180px)}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.movie-card{padding:7px;border-radius:12px}.movie-info h3{font-size:11px;margin:10px 3px 4px}.movie-info p{font-size:8px;margin:0 3px 4px}.thumb{aspect-ratio:2/3}.rail-section{padding-top:58px}.rail-head{gap:12px}.rail-head>div{min-width:0}}
+  @media(max-width:390px){.shell{width:calc(100% - 24px)}.grid{gap:10px}.movie-card{padding:6px}.movie-info h3{font-size:10px}.movie-info p{font-size:7px}.year{top:6px;right:6px;padding:4px 5px;font-size:8px}}
+  .hero{grid-template-columns:1fr;display:block;min-height:0;padding:48px 0 42px}.hero-copy,.hero-stage{display:none}.hero-search{width:min(680px,100%);margin:0 auto 28px;border:0;overflow:hidden;background:#e7ebef;border-radius:50px;box-shadow:inset 5px 5px 11px #cbd1d7,inset -5px -5px 11px #fff}.hero-search button{border:0;border-radius:50px;padding:11px 15px;background:#252a33;color:#fff;font:600 11px Manrope;cursor:pointer}.hero-trending{max-width:100%;margin:0 auto}.hero-trending-list{display:flex;gap:16px;margin-top:16px;overflow:hidden;padding:8px 6px 18px}.hero-trending-list:hover{animation-play-state:paused}.hero-trending-card{display:grid;grid-template-columns:28px 72px 155px;align-items:center;gap:10px;flex:0 0 285px;padding:10px;border-radius:14px;background:#e7ebef;box-shadow:7px 8px 16px #c8ced4,-7px -7px 16px #fff;min-width:0}.hero-trending-card>span{font:10px DM Mono;color:#ed8965}.hero-trending-card img{width:72px;height:92px;object-fit:cover;border-radius:9px}.hero-trending-card strong{font-size:12px;line-height:1.35;overflow:hidden;text-overflow:ellipsis}.discover>.search{display:none}
+  .hero-trending-list{background:transparent;scrollbar-width:none}.hero-trending-list::-webkit-scrollbar{display:none}
+  .hero-trending-card{background:#e7ebef}
+  .floating-search{display:none}@media(max-width:800px){.hero{padding:30px 0 34px}.hero-search{margin-bottom:24px}.hero-trending-list{gap:12px;padding-inline:3px}.hero-trending-card{flex-basis:245px;grid-template-columns:24px 58px 1fr}.hero-trending-card img{width:58px;height:74px}.floating-search{display:grid;place-items:center;position:fixed;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);width:52px;height:52px;padding:0;border:1px solid rgba(255,255,255,.7);border-radius:50%;background:rgba(255,255,255,.28);color:#252a33;box-shadow:8px 10px 22px rgba(139,149,160,.35),inset 1px 1px 4px rgba(255,255,255,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:700 25px/1 Manrope;line-height:1;text-align:center;cursor:pointer}}
+  .floating-search svg{display:block;width:22px;height:22px;fill:currentColor}
+  .pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin:42px 0 0;color:#8a95a2;font:11px DM Mono,monospace}.page-numbers{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}.pagination a,.pagination span{min-height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:50px;padding:0 16px;background:#e7ebef;box-shadow:4px 4px 9px #c6cfdb,-4px -4px 9px #fff}.pagination a{color:#242832;font-weight:700}.pagination a.active{background:#252a33;color:#fff;box-shadow:inset 4px 4px 9px #171b21,inset -4px -4px 9px #3a404b}.pagination .is-disabled{opacity:.45}.pagination .dots{min-width:28px;padding:0;box-shadow:none;background:transparent}.page-control{min-width:92px}
+  @media(max-width:520px){.pagination{gap:9px}.pagination a,.pagination span{min-height:36px;padding:0 12px}.page-control{min-width:auto}.page-numbers{order:3;width:100%;margin-top:2px}}
+  @media(prefers-reduced-motion:reduce){:global(*),:global(*::before),:global(*::after){animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>

@@ -1,0 +1,4 @@
+# FilmyFly is an application/API, not a public search-indexed website.
+# Block all compliant crawlers from every route.
+User-agent: *
+Disallow: /

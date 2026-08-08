@@ -1,0 +1,55 @@
+steps:
+  # Step 1: Build the Go application
+  - name: 'golang:1.25.4'
+    args:
+      - 'go'
+      - 'build'
+      - '-o'
+      - 'filmyfly'
+      - 'cmd/server/main.go'
+    env:
+      - 'CGO_ENABLED=0'
+      - 'GOOS=linux'
+      - 'GOARCH=amd64'
+
+  # Step 2: Deploy binary to Compute Engine
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'scp'
+      - 'filmyfly'
+      - 'filmyfly-server:/opt/filmyfly/filmyfly'
+      - '--zone=us-central1-a'
+
+  # Step 3: Copy views directory
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'scp'
+      - '--recurse'
+      - 'views'
+      - 'filmyfly-server:/opt/filmyfly/'
+      - '--zone=us-central1-a'
+
+  # Step 4: Copy public directory
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'scp'
+      - '--recurse'
+      - 'public'
+      - 'filmyfly-server:/opt/filmyfly/'
+      - '--zone=us-central1-a'
+
+  # Step 5: Restart the application service
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'ssh'
+      - 'filmyfly-server'
+      - '--zone=us-central1-a'
+      - '--command=sudo systemctl restart filmyfly'
+
+timeout: 600s
+options:
+  logging: CLOUD_LOGGING_ONLY

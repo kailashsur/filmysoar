@@ -1,0 +1,941 @@
+﻿---
+import {
+    siteConfig,
+    siteName,
+    siteDescription,
+    siteTitle,
+    siteThemeColor,
+    copyrightText,
+} from "../config/site";
+
+const apiBase = (
+    import.meta.env.PUBLIC_API_BASE_URL || "http://127.0.0.1:3000"
+).replace(/\/$/, "");
+const emptyHome = {
+    categories: [],
+    pagination: { total: 0, totalPages: 0 },
+    recentMovies: [],
+    trendingMovies: [],
+};
+const currentPage = Math.max(
+    1,
+    Number(Astro.url.searchParams.get("page") || 1) || 1,
+);
+const getHome = async () => {
+    try {
+        const response = await fetch(
+            `${apiBase}/api/home?page=${currentPage}`,
+            { method: "GET", signal: AbortSignal.timeout(3000) },
+        );
+        if (!response.ok) throw new Error("home api");
+        const result = await response.json();
+        return result.data ?? emptyHome;
+    } catch {
+        return emptyHome;
+    }
+};
+const home = await getHome();
+const movies = home.recentMovies ?? [];
+const trending = home.trendingMovies ?? [];
+const categories = home.categories ?? [];
+const name = (s = "") =>
+    s
+        .replace(/\s*\([^)]*\)/g, "")
+        .replace(
+            /\s+(Dual Audio|Hindi|English|Movie|Web Series|HD|ESub|BluRay|HDRip).*$/i,
+            "",
+        )
+        .trim();
+const genre = (s = "") =>
+    s
+        .replace(/\s*\[.*?\]/g, "")
+        .replace(/ Movies?$/i, "")
+        .trim();
+const link = (m) => `/movie/${m.slug}`;
+const total = home.pagination?.total?.toLocaleString() ?? "0";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" /><meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,viewport-fit=cover"
+        />
+
+        <meta name="description" content={siteDescription} />
+        <meta name="theme-color" content={siteThemeColor} />
+
+        <title>
+            {siteTitle || `${siteName} - Discover your next movie`}
+        </title>
+    </head>
+
+    <body>
+        <header>
+            <a class="logo" href="/" aria-label="FilmyFly home"
+                ><b>{siteConfig.branding.logoMark}</b><span
+                    >{siteConfig.branding.logoText}</span
+                ></a
+            ><nav>
+                <a href="#latest">Latest</a><a href="#trending">Trending</a><a
+                    href="/categories">Genres</a
+                >
+            </nav><a class="menu" href="#categories" aria-label="Browse genres"
+                >☰</a
+            >
+        </header>
+        <main>
+            <section class="hero wrap" id="search">
+                <div>
+                    <small class="eyebrow">● &nbsp;YOUR NIGHTLY WATCHLIST</small
+                    ><h1>Stories for<br /><i>every mood.</i></h1><p>
+                        Find movies and series you will want to talk about
+                        tomorrow.
+                    </p><form id="movie-search-form">
+                        <svg viewBox="0 0 24 24"
+                            ><circle cx="10.8" cy="10.8" r="6.4"></circle><path
+                                d="m16 16 5 5"></path></svg
+                        ><input
+                            id="movie-search"
+                            aria-label="Search movies"
+                            placeholder="Search movies or series"
+                            autocomplete="off"
+                        /><button>Search</button>
+                    </form><div class="try">
+                        Popular <a href="#latest">Action</a><a href="#latest"
+                            >Comedy</a
+                        ><a href="#latest">Hindi Dubbed</a>
+                    </div>
+                </div>{
+                    trending.length > 0 && (
+                        <div class="hero-stack" aria-label="Featured tonight">
+                            {trending.map((m, i) => (
+                                <a
+                                    class={`hero-card ${i === 0 ? "is-active" : ""}`}
+                                    href={link(m)}
+                                    data-feature-card
+                                >
+                                    <img
+                                        src={m.thumbnail}
+                                        alt={m.title}
+                                        loading={i === 0 ? "eager" : "lazy"}
+                                    />
+                                    <div>
+                                        <small>
+                                            FEATURED TONIGHT · {i + 1}/
+                                            {trending.length}
+                                        </small>
+                                        <h2>{name(m.title)}</h2>
+                                        <p>
+                                            {m.genre || "Movie"} ·{" "}
+                                            {m.releaseYear}
+                                        </p>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    )
+                }
+            </section>
+            <section class="stats wrap">
+                <div><b>{total}+</b><span>titles</span></div><div>
+                    <b>HD</b><span>quality</span>
+                </div><div><b>NEW</b><span>every day</span></div>
+            </section>
+            <section class="section wrap" id="categories">
+                <header>
+                    <div>
+                        <small>CHOOSE YOUR LANE</small><h2>
+                            Browse by <i>genre</i>
+                        </h2>
+                    </div><a href="/categories">See all →</a>
+                </header><div class="chips">
+                    {
+                        categories.map((c) => (
+                            <a href={`/categories/${c.slug}`}>
+                                <b />
+                                {genre(c.name)}
+                            </a>
+                        ))
+                    }
+                </div>
+            </section>
+            <section class="section wrap" id="trending">
+                <header>
+                    <div>
+                        <small>THE CURRENT CONVERSATION</small><h2>
+                            Trending <i>now</i>
+                        </h2>
+                    </div><a href="#latest">See all →</a>
+                </header><div class="trending">
+                    {
+                        trending.map((m, i) => (
+                            <a href={link(m)}>
+                                <>
+                                    <strong>0{i + 1}</strong>
+                                    <img
+                                        src={m.thumbnail}
+                                        alt={m.title}
+                                        loading="lazy"
+                                    />
+                                    <div>
+                                        <>
+                                            <h3>{name(m.title)}</h3>
+                                            <p>
+                                                {m.genre || "Drama"} ·{" "}
+                                                {m.releaseYear}
+                                            </p>
+                                        </>
+                                    </div>
+                                </>
+                            </a>
+                        ))
+                    }
+                </div>
+            </section>
+            <section class="section wrap" id="latest">
+                <header>
+                    <div>
+                        <small>JUST ADDED</small><h2>Latest <i>drops</i></h2>
+                    </div><span>{total} in library</span>
+                </header><div class="grid">
+                    {
+                        movies.map((m, i) => (
+                            <a class="movie" href={link(m)}>
+                                <>
+                                    <div>
+                                        <>
+                                            <img
+                                                src={m.thumbnail}
+                                                alt={m.title}
+                                                loading={
+                                                    i < 4 ? "eager" : "lazy"
+                                                }
+                                            />
+                                            <b>HD</b>
+                                        </>
+                                    </div>
+                                    <h3>{name(m.title)}</h3>
+                                    <p>
+                                        {m.genre || "Drama"} ·{" "}
+                                        {m.releaseYear || "2025"}
+                                    </p>
+                                </>
+                            </a>
+                        ))
+                    }
+                </div><div
+                    class="pagination"
+                    data-page={currentPage}
+                    data-total-pages={home.pagination?.totalPages || 1}
+                    aria-label="Pagination"
+                >
+                    <button class="active">1</button><button>2</button><button
+                        >3</button
+                    ><span>...</span><button
+                        >{home.pagination?.totalPages || 1}</button
+                    ><button class="next" aria-label="Next page">→</button>
+                </div>
+            </section>
+        </main><footer class="wrap">
+            <a class="logo" href="/"
+                ><b>{siteConfig.branding.logoMark}</b><span
+                    >{siteConfig.branding.logoText}</span
+                ></a
+            ><span>Stories worth staying for.</span><small
+                >{copyrightText}</small
+            >
+            <nav class="footer-links">
+                <a href="/about">About</a><a href="/contact">Contact</a><a
+                    href="/privacy-policy">Privacy</a
+                ><a href="/dmca">DMCA</a><a href="/movie-request">Request</a>
+            </nav>
+        </footer><nav class="bottom">
+            <a href="#search">⌂<small>Home</small></a><a href="#trending"
+                >♨<small>Trending</small></a
+            ><a href="#categories">▦<small>Genres</small></a><a href="#search"
+                >⌕<small>Search</small></a
+            >
+        </nav>
+        <script>
+            const input = document.querySelector("#movie-search"),
+                form = document.querySelector("#movie-search-form"),
+                cards = [...document.querySelectorAll(".movie")];
+            form?.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const q = input?.value.trim();
+                if (q)
+                    window.location.href = `/search?q=${encodeURIComponent(q)}`;
+            });
+            input?.addEventListener("input", (e) => {
+                const q = e.target.value.toLowerCase().trim();
+                cards.forEach(
+                    (c) =>
+                        (c.hidden =
+                            !!q && !c.textContent.toLowerCase().includes(q)),
+                );
+            });
+            document
+                .querySelectorAll('.bottom a[href="#search"]')
+                .forEach((a) =>
+                    a.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        document
+                            .querySelector("#search")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        setTimeout(
+                            () => input?.focus({ preventScroll: true }),
+                            350,
+                        );
+                    }),
+                );
+            const pagination = document.querySelector(".pagination");
+            if (pagination) {
+                const page = Number(pagination.dataset.page || "1"),
+                    total = Number(pagination.dataset.totalPages || "1"),
+                    buttons = [...pagination.querySelectorAll("button")],
+                    targets = [
+                        page,
+                        Math.min(page + 1, total),
+                        Math.min(page + 2, total),
+                        total,
+                        page + 1,
+                    ];
+                buttons.forEach((button, index) => {
+                    const target = targets[index];
+                    button.textContent = index === 4 ? "→" : String(target);
+                    button.disabled =
+                        target < 1 || target > total || target === page;
+                    button.classList.toggle("active", target === page);
+                    button.onclick = () => {
+                        if (!button.disabled)
+                            window.location.href =
+                                "/?page=" + target + "#latest";
+                    };
+                });
+            }
+            const featureCards = [
+                ...document.querySelectorAll("[data-feature-card]"),
+            ];
+            if (
+                featureCards.length > 1 &&
+                !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ) {
+                let active = 0;
+                setInterval(() => {
+                    featureCards[active].classList.remove("is-active");
+                    active = (active + 1) % featureCards.length;
+                    featureCards[active].classList.add("is-active");
+                }, 4800);
+            }
+        </script></body
+    >
+</html>
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap");
+    :root {
+        --bg: #090b12;
+        --card: #141823;
+        --line: #fff1;
+        --text: #f6f7fa;
+        --muted: #9098a9;
+        --purple: #9185ff;
+        --mint: #7ae0d0;
+    }
+    * {
+        box-sizing: border-box;
+    }
+    html {
+        scroll-behavior: smooth;
+    }
+    body {
+        margin: 0;
+        padding-bottom: 72px;
+        background: var(--bg);
+        color: var(--text);
+        font:
+            14px/1.5 "DM Sans",
+            sans-serif;
+    }
+    body:before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+            circle at 90% -10%,
+            #6559e62b,
+            transparent 35%
+        );
+    }
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .wrap {
+        width: min(100% - 32px, 1180px);
+        margin: auto;
+    }
+    header {
+        height: 66px;
+        width: min(100% - 32px, 1180px);
+        margin: auto;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font: 800 19px "Plus Jakarta Sans";
+        letter-spacing: -1px;
+    }
+    .logo b {
+        display: grid;
+        place-items: center;
+        width: 29px;
+        height: 29px;
+        border-radius: 9px;
+        background: var(--purple);
+    }
+    .logo i {
+        color: var(--purple);
+        font-style: normal;
+    }
+    nav:not(.bottom) {
+        display: none;
+    }
+    .menu {
+        padding: 10px;
+        color: var(--muted);
+        font-size: 22px;
+    }
+    .hero {
+        padding-top: 58px;
+        padding-bottom: 42px;
+    }
+    .eyebrow,
+    .section header small {
+        color: var(--mint);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+    }
+    .hero h1 {
+        margin: 16px 0 14px;
+        font: 800 48px/1.03 "Plus Jakarta Sans";
+        letter-spacing: -3px;
+    }
+    .hero h1 i,
+    .section h2 i {
+        color: var(--purple);
+        font-style: normal;
+    }
+    .hero p {
+        max-width: 330px;
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.7;
+    }
+    .hero form {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 5px 4px 15px;
+        background: #11151f;
+        border: 1px solid #fff2;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px #0004;
+    }
+    .hero form svg {
+        width: 17px;
+        flex: none;
+        fill: none;
+        stroke: #778195;
+        stroke-width: 1.7;
+    }
+    .hero input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text);
+        font: 13px "DM Sans";
+    }
+    .hero input::placeholder {
+        color: #737c8d;
+    }
+    .hero button {
+        height: 44px;
+        border: 0;
+        border-radius: 10px;
+        padding: 0 14px;
+        background: var(--purple);
+        color: #fff;
+        font-weight: 600;
+    }
+    .try {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+        color: #697487;
+        font-size: 10px;
+    }
+    .try a {
+        color: #b9c1d0;
+        border-bottom: 1px solid #fff3;
+    }
+    .hero-stack {
+        position: relative;
+        height: 220px;
+        margin-top: 37px;
+    }
+    .hero-card {
+        position: absolute;
+        inset: 0;
+        display: block;
+        height: 220px;
+        margin: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--card);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px) scale(0.985);
+        transition:
+            opacity 360ms ease,
+            transform 360ms ease;
+    }
+    .hero-card.is-active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
+    }
+    .hero-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .hero-card:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(0deg, #101522, transparent 70%);
+    }
+    .hero-card div {
+        position: absolute;
+        z-index: 1;
+        bottom: 15px;
+        left: 16px;
+    }
+    .hero-card small {
+        color: var(--mint);
+        font-size: 9px;
+        letter-spacing: 1px;
+    }
+    .hero-card h2 {
+        margin: 5px 0;
+        font: 700 18px "Plus Jakarta Sans";
+    }
+    .hero-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10px;
+    }
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 19px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+    }
+    .stats div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .stats b {
+        font: 700 17px "Plus Jakarta Sans";
+    }
+    .stats span,
+    .section header > a,
+    .section header > span {
+        color: var(--muted);
+        font-size: 9px;
+    }
+    .section {
+        padding-top: 59px;
+    }
+    .section header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 19px;
+    }
+    .section h2 {
+        margin: 6px 0 0;
+        font: 700 25px "Plus Jakarta Sans";
+        letter-spacing: -1px;
+    }
+    .section header > a {
+        font-size: 10px;
+    }
+    .chips {
+        display: flex;
+        gap: 8px;
+        overflow: auto;
+        margin-right: -16px;
+        padding-right: 16px;
+        scrollbar-width: none;
+    }
+    .chips::-webkit-scrollbar {
+        display: none;
+    }
+    .chips a {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex: none;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #11151f;
+        color: #bbc3d0;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+    .chips b {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--purple);
+    }
+    .chips a:nth-child(2n) b {
+        background: var(--mint);
+    }
+    .trending {
+        display: grid;
+        gap: 10px;
+    }
+    .trending > a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: #11151f;
+    }
+    .trending strong {
+        width: 21px;
+        color: #738095;
+        font: 700 14px "Plus Jakarta Sans";
+    }
+    .trending img {
+        width: 47px;
+        height: 58px;
+        object-fit: cover;
+        border-radius: 7px;
+    }
+    .trending div {
+        min-width: 0;
+    }
+    .trending h3 {
+        margin: 0 0 5px;
+        overflow: hidden;
+        font: 600 12px/1.25 "Plus Jakarta Sans";
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .trending p,
+    .movie p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10px;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 26px 12px;
+    }
+    .movie {
+        display: flex;
+        min-width: 0;
+        height: 100%;
+        flex-direction: column;
+    }
+    .movie > div {
+        position: relative;
+        aspect-ratio: 2/3;
+        overflow: hidden;
+        border-radius: 11px;
+        background: var(--card);
+    }
+    .movie img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        transition: transform 0.25s;
+    }
+    .movie:hover img {
+        transform: scale(1.03);
+    }
+    .movie > div > b {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 3px 5px;
+        border: 1px solid #fff3;
+        border-radius: 5px;
+        background: #0b101add;
+        font-size: 8px;
+    }
+    .movie h3 {
+        min-height: 15px;
+        margin: 9px 1px 4px;
+        overflow: hidden;
+        font: 600 11px/1.3 "Plus Jakarta Sans";
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .movie p {
+        min-height: 15px;
+    }
+    .movie[hidden] {
+        display: none;
+    }
+    #latest {
+        padding-bottom: 60px;
+    }
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 38px;
+    }
+    .pagination button {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #11151f;
+        color: var(--muted);
+        font: 600 11px "DM Sans";
+        cursor: pointer;
+    }
+    .pagination button.active {
+        border-color: var(--purple);
+        background: var(--purple);
+        color: #fff;
+    }
+    .pagination button:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+    .pagination button.next {
+        font-size: 16px;
+        color: var(--mint);
+    }
+    .pagination span {
+        color: #697487;
+        font-size: 12px;
+        padding: 0 2px;
+    }
+    footer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px 0 27px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 10px;
+    }
+    footer span {
+        flex: 1;
+    }
+    footer small {
+        font-size: 9px;
+    }
+    .bottom {
+        position: fixed;
+        z-index: 5;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+        border-top: 1px solid #fff2;
+        background: #10141eef;
+        backdrop-filter: blur(14px);
+    }
+    .bottom a {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 2px;
+        color: #778297;
+        font-size: 21px;
+        line-height: 1;
+    }
+    .bottom small {
+        font-size: 9px;
+    }
+    .bottom a:first-child {
+        color: var(--purple);
+    }
+    @media (min-width: 700px) {
+        body {
+            padding-bottom: 0;
+        }
+        .wrap,
+        header {
+            width: min(100% - 56px, 1180px);
+        }
+        header {
+            height: 82px;
+        }
+        header nav {
+            display: flex;
+            gap: 30px;
+            margin: auto;
+        }
+        header nav a {
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .menu,
+        .bottom {
+            display: none;
+        }
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 400px;
+            align-items: center;
+            gap: 90px;
+            padding-top: 100px;
+            padding-bottom: 80px;
+        }
+        .hero h1 {
+            font-size: 70px;
+        }
+        .hero p {
+            font-size: 16px;
+            max-width: 440px;
+        }
+        .hero-stack {
+            height: 320px;
+            margin-top: 0;
+        }
+        .hero-card {
+            height: 320px;
+        }
+        .section {
+            padding-top: 88px;
+        }
+        .section h2 {
+            font-size: 32px;
+        }
+        .chips {
+            overflow: visible;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+        .trending {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .trending > a {
+            display: block;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .trending strong {
+            position: absolute;
+            z-index: 1;
+            top: 12px;
+            left: 12px;
+            color: white;
+        }
+        .trending img {
+            width: 100%;
+            height: 190px;
+            border-radius: 0;
+        }
+        .trending div {
+            padding: 13px;
+        }
+        .trending h3 {
+            font-size: 14px;
+        }
+        .grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 34px 16px;
+        }
+        .movie h3 {
+            font-size: 12px;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+        .hero-card {
+            transition: none;
+        }
+        .movie img {
+            transition: none;
+        }
+    }
+    <style > body {
+        font-size: 15px;
+    }
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+        margin: 8px 0;
+    }
+    .footer-links a {
+        font-size: 13px !important;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+    .footer-links a:hover {
+        color: var(--mint);
+    }
+    footer {
+        font-size: 13px !important;
+    }
+    footer small {
+        font-size: 12px !important;
+    }
+    .section-heading > span,
+    .section header > a,
+    .section header > span {
+        font-size: 12px !important;
+    }
+    @media (min-width: 700px) {
+        body {
+            font-size: 16px;
+        }
+        .footer-links a {
+            font-size: 14px !important;
+        }
+        footer small {
+            font-size: 13px !important;
+        }
+    }
+</style>

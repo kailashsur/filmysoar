@@ -1,0 +1,224 @@
+---
+import { siteConfig, siteName, siteThemeColor, copyrightText } from "../config/site";
+
+const apiBase = (
+    import.meta.env.PUBLIC_API_BASE_URL || "http://127.0.0.1:3000"
+).replace(/\/$/, "");
+const query = Astro.url.searchParams.get("q")?.trim() || "";
+const page = Math.max(1, Number(Astro.url.searchParams.get("page") || 1) || 1);
+const emptyResult = { movies: [], pagination: { page: 1, total: 0, totalPages: 0 } };
+
+const searchMovies = async () => {
+    if (!query) return emptyResult;
+    try {
+        const response = await fetch(
+            `${apiBase}/api/search?q=${encodeURIComponent(query)}&page=${page}`,
+            { method: "GET", signal: AbortSignal.timeout(3000) },
+        );
+        if (!response.ok) throw new Error("Search API error");
+        const result = await response.json();
+        return result.data ?? emptyResult;
+    } catch {
+        return emptyResult;
+    }
+};
+
+const result = await searchMovies();
+const movies = result.movies ?? [];
+const totalPages = result.pagination?.totalPages || 1;
+const pages = Array.from(
+    new Set(
+        [1, page - 1, page, page + 1, totalPages].filter(
+            (pageNumber) => pageNumber >= 1 && pageNumber <= totalPages,
+        ),
+    ),
+).sort((a, b) => a - b);
+const cleanTitle = (value = "") =>
+    value
+        .replace(/\s*\([^)]*\)/g, "")
+        .replace(
+            /\s+(Dual Audio|Hindi|English|Movie|Web Series|HD|ESub|BluRay|HDRip).*$/i,
+            "",
+        )
+        .trim();
+const cleanGenre = (value = "") =>
+    value
+        .replace(/\s*\[.*?\]/g, "")
+        .replace(/ Movies?$/i, "")
+        .trim();
+const href = (movie) => `/movie/${movie.slug}`;
+const pageLink = (number) => `/search?q=${encodeURIComponent(query)}&page=${number}`;
+---
+
+<!doctype html>
+<html lang={siteConfig.site.language}>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,viewport-fit=cover"
+        />
+        <meta
+            name="description"
+            content={
+                query
+                    ? `Search results for ${query} on ${siteName}.`
+                    : `Search movies and series on ${siteName}.`
+            }
+        />
+        <meta name="theme-color" content={siteThemeColor} />
+        <title>{query ? `Search: ${query}` : "Search movies"} - {siteName}</title>
+    </head>
+    <body>
+        <div class="noise"></div>
+        <header class="shell nav">
+            <a class="brand" href="/" aria-label={`${siteName} home`}>
+                <span class="mark">{siteConfig.branding.logoMark}</span>
+                <span>{siteConfig.branding.logoText}</span>
+            </a>
+            <nav>
+                <a href="/#discover">Discover</a>
+                <a href="/#trending">Trending</a>
+                <a class="nav-pill" href="/#latest">Explore archive</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="shell search-hero">
+                <p class="kicker">FilmyFly library</p>
+                <h1>Find your next <em>favorite.</em></h1>
+                <form class="search-form" action="/search" method="get">
+                    <span></span>
+                    <input
+                        name="q"
+                        value={query}
+                        aria-label="Search movies"
+                        placeholder="Search movies or series"
+                    />
+                    <button type="submit">Search</button>
+                </form>
+            </section>
+
+            {
+                query ? (
+                    <section class="shell results" aria-live="polite">
+                        <div class="rail-head">
+                            <div>
+                                <p class="kicker">Search results</p>
+                                <h2>
+                                    {result.pagination?.total ?? movies.length} results for{" "}
+                                    <em>"{query}"</em>
+                                </h2>
+                            </div>
+                            <p class="rail-note">
+                                Page {result.pagination?.page ?? 1} of{" "}
+                                {result.pagination?.totalPages ?? 1}
+                            </p>
+                        </div>
+
+                        {movies.length > 0 ? (
+                            <div class="grid">
+                                {movies.map((movie, index) => (
+                                    <a class="movie-card" href={href(movie)}>
+                                        <div class="thumb">
+                                            {movie.thumbnail ? (
+                                                <img
+                                                    src={movie.thumbnail}
+                                                    alt={movie.title}
+                                                    loading={index < 5 ? "eager" : "lazy"}
+                                                />
+                                            ) : (
+                                                <span>{siteConfig.branding.logoText}</span>
+                                            )}
+                                            <b class="year">
+                                                {movie.releaseYear || "HD"}
+                                            </b>
+                                        </div>
+                                        <div class="movie-info">
+                                            <h3>{cleanTitle(movie.title)}</h3>
+                                            <p>
+                                                {cleanGenre(movie.genre || "Feature film")}
+                                                {movie.duration ? ` - ${movie.duration}` : ""}
+                                            </p>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        ) : (
+                            <div class="empty">
+                                <h2>No titles found</h2>
+                                <p>Try a different movie name, actor, genre, or language.</p>
+                                <a href="/">Back to home</a>
+                            </div>
+                        )}
+
+                        {totalPages > 1 ? (
+                            <nav class="pagination" aria-label="Search results pagination">
+                                {page > 1 ? (
+                                    <a class="page-control" href={pageLink(page - 1)}>
+                                        Previous
+                                    </a>
+                                ) : (
+                                    <span class="page-control is-disabled">Previous</span>
+                                )}
+                                <div class="page-numbers">
+                                    {pages.map((pageNumber, index) => (
+                                        <>
+                                            {index > 0 &&
+                                            pageNumber - pages[index - 1] > 1 ? (
+                                                <span class="dots">...</span>
+                                            ) : null}
+                                            <a
+                                                class={
+                                                    pageNumber === page ? "active" : ""
+                                                }
+                                                href={pageLink(pageNumber)}
+                                                aria-current={
+                                                    pageNumber === page
+                                                        ? "page"
+                                                        : undefined
+                                                }
+                                            >
+                                                {pageNumber}
+                                            </a>
+                                        </>
+                                    ))}
+                                </div>
+                                {page < totalPages ? (
+                                    <a class="page-control" href={pageLink(page + 1)}>
+                                        Next
+                                    </a>
+                                ) : (
+                                    <span class="page-control is-disabled">Next</span>
+                                )}
+                            </nav>
+                        ) : null}
+                    </section>
+                ) : (
+                    <section class="shell empty initial">
+                        <h2>What are you looking for?</h2>
+                        <p>Search by movie name, actor, genre, or language.</p>
+                    </section>
+                )
+            }
+        </main>
+
+        <footer class="shell footer">
+            <span>{siteConfig.branding.logoText} - made for movie people</span>
+            <small>{copyrightText}</small>
+            <nav class="footer-links">
+                <a href="/about">About</a>
+                <a href="/contact">Contact</a>
+                <a href="/privacy-policy">Privacy</a>
+                <a href="/dmca">DMCA</a>
+                <a href="/movie-request">Request</a>
+            </nav>
+        </footer>
+    </body>
+</html>
+
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+    :global(*){box-sizing:border-box}:global(body){margin:0;background:#e7ebef;color:#242832;font-family:Manrope,system-ui,sans-serif;overflow-x:hidden}:global(a){color:inherit;text-decoration:none}.noise{position:fixed;inset:0;opacity:.025;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}.shell{width:min(1180px,calc(100% - 64px));margin:auto}.nav{height:105px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:800;letter-spacing:.18em}.mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#252a33;color:#f2a17e;box-shadow:7px 7px 14px #c5cbd1,-6px -6px 13px #fff;font-size:18px}nav{display:flex;gap:28px;align-items:center;font-size:12px;color:#6c7683}.nav-pill{background:#252a33;color:#fff;border-radius:100px;padding:13px 18px;box-shadow:7px 7px 14px #c5cbd1,-6px -6px 13px #fff}.search-hero{padding:78px 0 70px;border-bottom:1px solid #d2d8de}.kicker{margin:0;color:#8a95a2;font:500 10px/1 DM Mono,monospace;letter-spacing:.11em;text-transform:uppercase}.search-hero h1,.rail-head h2{margin:22px 0 25px;color:#252a33;font-size:clamp(48px,7vw,82px);line-height:.95;letter-spacing:-.06em}.search-hero h1 em,.rail-head h2 em{color:#ef8965;font-style:normal}.search-form{width:min(680px,100%);display:flex;align-items:center;gap:12px;padding:8px 8px 8px 19px;border-radius:50px;box-shadow:inset 5px 5px 11px #cbd1d7,inset -5px -5px 11px #fff;color:#99a3ad}.search-form span{position:relative;flex:none;width:14px;height:14px;border:2px solid #99a3ad;border-radius:50%}.search-form span:before{content:"";position:absolute;right:-6px;bottom:-3px;width:7px;height:2px;background:#99a3ad;transform:rotate(45deg);border-radius:99px}.search-form input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#252a33;font:13px Manrope}.search-form button{border:0;border-radius:50px;padding:12px 18px;background:#ed8965;color:#fff;font:700 12px Manrope;cursor:pointer}.results{padding:80px 0 90px}.rail-head{display:flex;justify-content:space-between;align-items:end;gap:22px;margin-bottom:27px}.rail-head h2{font-size:39px;margin-top:14px}.rail-note{color:#8a95a2;font:10px DM Mono,monospace;text-align:right}.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:start;gap:16px}.movie-card{min-width:0;width:100%;overflow:hidden;padding:9px;border-radius:14px;background:#e7ebef;box-shadow:7px 8px 16px #c8ced4,-7px -7px 16px #fff;transition:transform .3s}.movie-card:hover{transform:translateY(-8px)}.thumb{aspect-ratio:2/3;border-radius:10px;overflow:hidden;position:relative;background:#ccd3da;display:grid;place-items:center;color:#fff;font:12px DM Mono,monospace}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.year{position:absolute;top:9px;right:9px;padding:5px 7px;border-radius:7px;background:rgba(37,42,51,.75);color:#fff;font:9px DM Mono,monospace}.movie-info h3{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:13px 4px 5px}.movie-info p{font:9px DM Mono,monospace;color:#8a95a2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 4px 4px}.empty{padding:44px;border-radius:18px;background:#e7ebef;box-shadow:7px 8px 16px #c8ced4,-7px -7px 16px #fff;color:#8a95a2;text-align:center}.empty.initial{margin-top:80px;margin-bottom:90px}.empty h2{margin:0 0 10px;color:#252a33;font-size:28px;letter-spacing:-.04em}.empty p{margin:0 0 22px}.empty a{display:inline-flex;align-items:center;min-height:44px;border-radius:100px;padding:0 18px;background:#252a33;color:#fff;font-weight:800;font-size:12px}.pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin:42px 0 0;color:#8a95a2;font:11px DM Mono,monospace}.pagination a,.pagination span,.pagination b{min-height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:50px;padding:0 16px;background:#e7ebef;box-shadow:4px 4px 9px #c6cfdb,-4px -4px 9px #fff}.pagination a{color:#242832;font-weight:700}.pagination span{opacity:.48}.pagination b{color:#ef8965;box-shadow:inset 4px 4px 9px #cbd1d7,inset -4px -4px 9px #fff}.footer{border-top:1px solid #d2d8de;padding:26px 0 36px;display:flex;align-items:center;gap:18px;color:#8a95a2;font:12px DM Mono,monospace}.footer span{flex:1}.footer-links{display:flex;flex-wrap:wrap;gap:12px 18px;font:13px Manrope,system-ui,sans-serif}@media(max-width:800px){.shell{width:min(100% - 28px,1180px)}.nav{height:86px}nav a:not(.nav-pill){display:none}.search-hero{padding:46px 0 58px}.search-hero h1{font-size:44px;letter-spacing:-.05em}.results{padding-top:58px}.rail-head{align-items:start}.rail-note{display:none}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.movie-card{padding:7px;border-radius:12px}.movie-info h3{font-size:11px;margin:10px 3px 4px}.movie-info p{font-size:8px;margin:0 3px 4px}.footer{align-items:flex-start;flex-direction:column}}@media(max-width:390px){.shell{width:calc(100% - 24px)}.grid{gap:10px}.movie-card{padding:6px}.movie-info h3{font-size:10px}.movie-info p{font-size:7px}.year{top:6px;right:6px;padding:4px 5px;font-size:8px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.page-numbers{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}.pagination a.active{background:#252a33;color:#fff;box-shadow:inset 4px 4px 9px #171b21,inset -4px -4px 9px #3a404b}.pagination .is-disabled{opacity:.45}.pagination .dots{min-width:28px;padding:0;box-shadow:none;background:transparent}.page-control{min-width:92px}@media(max-width:520px){.pagination{gap:9px}.pagination a,.pagination span,.pagination b{min-height:36px;padding:0 12px}.page-control{min-width:auto}.page-numbers{order:3;width:100%;margin-top:2px}}
+</style>

@@ -1,0 +1,818 @@
+---
+import {
+    siteConfig,
+    siteName,
+    siteDescription,
+    siteThemeColor,
+    copyrightText,
+} from "../../config/site";
+
+const apiBase = (
+    import.meta.env.PUBLIC_API_BASE_URL || "http://127.0.0.1:3000"
+).replace(/\/$/, "");
+const slug = Astro.params.slug || "";
+const page = Math.max(1, Number(Astro.url.searchParams.get("page") || 1));
+const fallback = {
+    category: null,
+    movies: [],
+    pagination: {
+        page,
+        total: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+    },
+};
+
+let payload = fallback;
+
+try {
+    const response = await fetch(
+        `${apiBase}/api/categories/${encodeURIComponent(slug)}?page=${page}`,
+        { method: "GET", signal: AbortSignal.timeout(3000) },
+    );
+    if (response.ok) payload = (await response.json()).data || fallback;
+} catch {}
+
+const category = payload.category;
+const movies = Array.isArray(payload.movies) ? payload.movies : [];
+const pagination = payload.pagination ?? fallback.pagination;
+const categoryTitle = category?.name || "Category";
+const clean = (value = "") => value.replace(/\s+/g, " ").trim();
+const cleanTitle = (value = "") =>
+    clean(value)
+        .replace(/\s*\([^)]*\)/g, "")
+        .replace(
+            /\s+(Dual Audio|Hindi|English|Movie|Web Series|HD|ESub|BluRay|HDRip).*$/i,
+            "",
+        )
+        .trim();
+const cleanGenre = (value = "") =>
+    clean(value)
+        .replace(/\s*\[.*?\]/g, "")
+        .replace(/ Movies?$/i, "")
+        .trim();
+const movieHref = (movie) => `/movie/${movie.slug || movie.id}`;
+const pageHref = (targetPage) => `/categories/${slug}?page=${targetPage}`;
+const totalPages = Math.max(1, Number(pagination.totalPages || 1));
+const pages = Array.from(
+    new Set(
+        [1, page - 1, page, page + 1, totalPages].filter(
+            (pageNumber) => pageNumber >= 1 && pageNumber <= totalPages,
+        ),
+    ),
+).sort((a, b) => a - b);
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,viewport-fit=cover"
+        />
+        <meta
+            name="description"
+            content={
+                category
+                    ? `Browse ${categoryTitle} movies on ${siteName}.`
+                    : siteDescription
+            }
+        />
+        <meta name="theme-color" content={siteThemeColor} />
+        <title>{categoryTitle} - {siteName}</title>
+    </head>
+    <body>
+        <div class="noise"></div>
+        <header class="shell nav">
+            <a class="brand" href="/" aria-label={`${siteName} home`}>
+                <span class="mark">{siteConfig.branding.logoMark}<span></span></span>
+                <span>{siteConfig.branding.logoText}</span>
+            </a>
+            <nav>
+                <a href="/#discover">Discover</a>
+                <a href="/#trending">Trending</a>
+                <a class="nav-pill" href="/categories">Genres <b></b></a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="shell search-band" id="search">
+                <form class="search" action="/search" method="get">
+                    <span></span>
+                    <input
+                        id="category-search"
+                        name="q"
+                        type="search"
+                        placeholder="Search a title, genre, feeling..."
+                        aria-label="Search movies"
+                    />
+                    <button type="submit">Search</button>
+                </form>
+            </section>
+
+            <section class="shell intro">
+                <a class="back-link" href="/categories">All categories</a>
+                <p class="kicker">
+                    {category ? "Category collection" : "Category not found"}
+                </p>
+                <h1>{category?.name || "Nothing here yet."}</h1>
+                <p>
+                    {
+                        category?.description ||
+                            (category
+                                ? `Explore all ${category.name} available on ${siteName}.`
+                                : "We could not find this category.")
+                    }
+                </p>
+                {
+                    category ? (
+                        <div class="summary-pills">
+                            <span>{pagination.total || movies.length} movies</span>
+                            <span>Page {page} of {pagination.totalPages || 1}</span>
+                        </div>
+                    ) : null
+                }
+            </section>
+
+            <section class="shell rail-section">
+                <div class="rail-head">
+                    <div>
+                        <p class="kicker">Browse archive</p>
+                        <h2>Movies in <em>{category?.name || "this category"}</em></h2>
+                    </div>
+                    <p class="rail-note">{movies.length} shown</p>
+                </div>
+
+                {
+                    movies.length ? (
+                        <div class="grid">
+                            {movies.map((movie, index) => (
+                                <a class="movie-card" href={movieHref(movie)}>
+                                    <div class="thumb">
+                                        {movie.thumbnail || movie.screenshot ? (
+                                            <img
+                                                src={movie.thumbnail || movie.screenshot}
+                                                alt={clean(movie.title)}
+                                                loading={index < 5 ? "eager" : "lazy"}
+                                                decoding="async"
+                                            />
+                                        ) : (
+                                            <span>{siteConfig.branding.logoText}</span>
+                                        )}
+                                        <b class="year">{movie.releaseYear || "-"}</b>
+                                    </div>
+                                    <div class="movie-info">
+                                        <h3>{cleanTitle(movie.title)}</h3>
+                                        <p>
+                                            {cleanGenre(movie.genre || "Feature film")}
+                                            {movie.duration ? ` - ${movie.duration}` : ""}
+                                        </p>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    ) : (
+                        <div class="empty">
+                            No movies are available in this category yet.
+                        </div>
+                    )
+                }
+
+                {
+                    totalPages > 1 ? (
+                        <nav class="pagination" aria-label="Category pagination">
+                            {pagination.hasPrevPage ? (
+                                <a class="page-control" href={pageHref(page - 1)}>
+                                    Previous
+                                </a>
+                            ) : (
+                                <span class="page-control is-disabled">Previous</span>
+                            )}
+                            <div class="page-numbers">
+                                {pages.map((pageNumber, index) => (
+                                    <>
+                                        {index > 0 &&
+                                        pageNumber - pages[index - 1] > 1 ? (
+                                            <span class="dots">...</span>
+                                        ) : null}
+                                        <a
+                                            class={
+                                                pageNumber === page ? "active" : ""
+                                            }
+                                            href={pageHref(pageNumber)}
+                                            aria-current={
+                                                pageNumber === page
+                                                    ? "page"
+                                                    : undefined
+                                            }
+                                        >
+                                            {pageNumber}
+                                        </a>
+                                    </>
+                                ))}
+                            </div>
+                            {pagination.hasNextPage ? (
+                                <a class="page-control" href={pageHref(page + 1)}>
+                                    Next
+                                </a>
+                            ) : (
+                                <span class="page-control is-disabled">Next</span>
+                            )}
+                        </nav>
+                    ) : null
+                }
+            </section>
+        </main>
+
+        <footer class="shell footer">
+            <span>{siteConfig.branding.logoText} - made for movie people</span>
+            <small>{copyrightText}</small>
+            <nav class="footer-links">
+                <a href="/about">About</a>
+                <a href="/contact">Contact</a>
+                <a href="/privacy-policy">Privacy</a>
+                <a href="/dmca">DMCA</a>
+                <a href="/movie-request">Request</a>
+            </nav>
+        </footer>
+
+        <button class="floating-search" type="button" aria-label="Go to search">
+            <svg viewBox="0 0 50 50" aria-hidden="true">
+                <path d="M21 4C11.08 4 3 12.08 3 22s8.08 18 18 18c3.62 0 6.99-1.09 9.82-2.94l12.56 12.56 4.24-4.24-12.4-12.4A17.9 17.9 0 0 0 39 22C39 12.08 30.92 4 21 4Zm0 4c7.76 0 14 6.24 14 14s-6.24 14-14 14S7 29.76 7 22 13.24 8 21 8Z"></path>
+            </svg>
+        </button>
+
+        <script>
+            const searchInput = document.querySelector("#category-search");
+            document.querySelector(".floating-search")?.addEventListener("click", () => {
+                searchInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => searchInput?.focus({ preventScroll: true }), 400);
+            });
+        </script>
+    </body>
+</html>
+
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+    :global(*) {
+        box-sizing: border-box;
+    }
+
+    :global(html) {
+        scroll-behavior: smooth;
+    }
+
+    :global(body) {
+        margin: 0;
+        background: #e7ebef;
+        color: #242832;
+        font-family: Manrope, system-ui, sans-serif;
+        overflow-x: hidden;
+    }
+
+    :global(a) {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .noise {
+        position: fixed;
+        inset: 0;
+        opacity: 0.025;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+    }
+
+    .shell {
+        width: min(1180px, calc(100% - 64px));
+        margin: auto;
+    }
+
+    .nav {
+        height: 105px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 2;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+    }
+
+    .mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: #252a33;
+        color: #f2a17e;
+        box-shadow: 7px 7px 14px #c5cbd1, -6px -6px 13px #fff;
+        font-size: 18px;
+    }
+
+    .mark span {
+        display: none;
+    }
+
+    nav {
+        display: flex;
+        gap: 28px;
+        align-items: center;
+        font-size: 12px;
+        color: #6c7683;
+    }
+
+    nav a:hover {
+        color: #242832;
+    }
+
+    .nav-pill {
+        background: #252a33;
+        color: #fff;
+        border-radius: 100px;
+        padding: 13px 18px;
+        box-shadow: 7px 7px 14px #c5cbd1, -6px -6px 13px #fff;
+    }
+
+    .search-band {
+        padding: 28px 0 18px;
+    }
+
+    .search {
+        width: min(680px, 100%);
+        margin: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 8px 8px 19px;
+        border-radius: 50px;
+        box-shadow: inset 5px 5px 11px #cbd1d7, inset -5px -5px 11px #fff;
+        color: #99a3ad;
+    }
+
+    .search span {
+        position: relative;
+        flex: none;
+        display: block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #99a3ad;
+        border-radius: 50%;
+    }
+
+    .search span:before {
+        content: "";
+        width: 7px;
+        height: 2px;
+        position: absolute;
+        right: -6px;
+        bottom: -3px;
+        background: #99a3ad;
+        transform: rotate(45deg);
+        border-radius: 99px;
+    }
+
+    .search input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #252a33;
+        font: 13px Manrope;
+    }
+
+    .search button {
+        border: 0;
+        border-radius: 50px;
+        padding: 12px 18px;
+        background: #ed8965;
+        color: #fff;
+        font: 700 12px Manrope;
+        cursor: pointer;
+    }
+
+    .intro {
+        position: relative;
+        padding: 68px 0 80px;
+        border-bottom: 1px solid #d2d8de;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 34px;
+        color: #7d8793;
+        font: 500 11px DM Mono, monospace;
+    }
+
+    .kicker {
+        font: 500 10px/1 DM Mono, monospace;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: #8a95a2;
+        margin: 0;
+    }
+
+    .intro h1 {
+        max-width: 850px;
+        margin: 22px 0 18px;
+        color: #252a33;
+        font-size: clamp(48px, 7vw, 92px);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+    }
+
+    .intro p:not(.kicker) {
+        max-width: 620px;
+        margin: 0;
+        color: #7d8793;
+        font-size: 15px;
+        line-height: 1.75;
+    }
+
+    .summary-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+    }
+
+    .summary-pills span {
+        padding: 11px 14px;
+        border-radius: 50px;
+        background: #e7ebef;
+        color: #68778c;
+        box-shadow: 5px 5px 10px #c9cfd5, -5px -5px 10px #fff;
+        font: 11px DM Mono, monospace;
+    }
+
+    .rail-section {
+        padding: 80px 0 0;
+    }
+
+    .rail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 22px;
+        margin-bottom: 27px;
+    }
+
+    .rail-head h2 {
+        margin: 14px 0 0;
+        color: #252a33;
+        font-size: 39px;
+        line-height: 1;
+        letter-spacing: -0.06em;
+    }
+
+    .rail-head h2 em {
+        color: #ef8965;
+        font-style: normal;
+    }
+
+    .rail-note {
+        color: #8a95a2;
+        font: 10px DM Mono, monospace;
+        text-align: right;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: start;
+        gap: 16px;
+    }
+
+    .movie-card {
+        min-width: 0;
+        width: 100%;
+        overflow: hidden;
+        padding: 9px;
+        border-radius: 14px;
+        background: #e7ebef;
+        box-shadow: 7px 8px 16px #c8ced4, -7px -7px 16px #fff;
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+
+    .movie-card:hover {
+        transform: translateY(-8px);
+    }
+
+    .thumb {
+        aspect-ratio: 2 / 3;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+        background: #ccd3da;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font: 12px DM Mono, monospace;
+    }
+
+    .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .year {
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        padding: 5px 7px;
+        border-radius: 7px;
+        background: rgba(37, 42, 51, 0.75);
+        color: #fff;
+        font: 9px DM Mono, monospace;
+    }
+
+    .movie-info h3 {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 13px 4px 5px;
+    }
+
+    .movie-info p {
+        max-width: 100%;
+        font: 9px DM Mono, monospace;
+        color: #8a95a2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0 4px 4px;
+    }
+
+    .empty {
+        padding: 34px;
+        border-radius: 18px;
+        background: #e7ebef;
+        box-shadow: 7px 8px 16px #c8ced4, -7px -7px 16px #fff;
+        color: #8a95a2;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 42px 0 0;
+        color: #8a95a2;
+        font: 11px DM Mono, monospace;
+    }
+
+    .pagination a,
+    .pagination span,
+    .pagination b {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50px;
+        padding: 0 16px;
+        background: #e7ebef;
+        box-shadow: 4px 4px 9px #c6cfdb, -4px -4px 9px #fff;
+    }
+
+    .pagination a {
+        color: #242832;
+        font-weight: 700;
+    }
+
+    .pagination span {
+        opacity: 0.48;
+    }
+
+    .pagination b {
+        color: #ef8965;
+        box-shadow: inset 4px 4px 9px #cbd1d7, inset -4px -4px 9px #fff;
+    }
+
+    .page-numbers {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .pagination a.active {
+        background: #252a33;
+        color: #fff;
+        box-shadow: inset 4px 4px 9px #171b21, inset -4px -4px 9px #3a404b;
+    }
+
+    .pagination .is-disabled {
+        opacity: 0.45;
+    }
+
+    .pagination .dots {
+        min-width: 28px;
+        padding: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .page-control {
+        min-width: 92px;
+    }
+
+    .footer {
+        border-top: 1px solid #d2d8de;
+        margin-top: 100px;
+        padding: 26px 0 36px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        color: #8a95a2;
+        font: 12px DM Mono, monospace;
+    }
+
+    .footer span {
+        flex: 1;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+        font: 13px Manrope, system-ui, sans-serif;
+    }
+
+    .floating-search {
+        display: none;
+    }
+
+    @media (max-width: 800px) {
+        .shell {
+            width: min(100% - 28px, 1180px);
+        }
+
+        .nav {
+            height: 86px;
+        }
+
+        nav a:not(.nav-pill) {
+            display: none;
+        }
+
+        .search-band {
+            padding-top: 18px;
+        }
+
+        .intro {
+            padding: 46px 0 58px;
+        }
+
+        .intro h1 {
+            font-size: 44px;
+            letter-spacing: -0.05em;
+        }
+
+        .rail-section {
+            padding-top: 58px;
+        }
+
+        .rail-head {
+            align-items: start;
+        }
+
+        .rail-note {
+            display: none;
+        }
+
+        .grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .movie-card {
+            padding: 7px;
+            border-radius: 12px;
+        }
+
+        .movie-info h3 {
+            font-size: 11px;
+            margin: 10px 3px 4px;
+        }
+
+        .movie-info p {
+            font-size: 8px;
+            margin: 0 3px 4px;
+        }
+
+        .footer {
+            align-items: flex-start;
+            flex-direction: column;
+            padding-bottom: 90px;
+        }
+
+        .pagination {
+            gap: 9px;
+        }
+
+        .pagination a,
+        .pagination span,
+        .pagination b {
+            min-height: 36px;
+            padding: 0 12px;
+        }
+
+        .page-control {
+            min-width: auto;
+        }
+
+        .page-numbers {
+            order: 3;
+            width: 100%;
+            margin-top: 2px;
+        }
+
+        .floating-search {
+            display: grid;
+            place-items: center;
+            position: fixed;
+            z-index: 20;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            width: 52px;
+            height: 52px;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.28);
+            color: #252a33;
+            box-shadow:
+                8px 10px 22px rgba(139, 149, 160, 0.35),
+                inset 1px 1px 4px rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            cursor: pointer;
+        }
+
+        .floating-search svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .shell {
+            width: calc(100% - 24px);
+        }
+
+        .grid {
+            gap: 10px;
+        }
+
+        .movie-card {
+            padding: 6px;
+        }
+
+        .movie-info h3 {
+            font-size: 10px;
+        }
+
+        .movie-info p {
+            font-size: 7px;
+        }
+
+        .year {
+            top: 6px;
+            right: 6px;
+            padding: 4px 5px;
+            font-size: 8px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :global(*),
+        :global(*::before),
+        :global(*::after) {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+        }
+    }
+</style>

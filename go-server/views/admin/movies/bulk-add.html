@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - FilmyFly Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Courier New', monospace;
+            min-height: 400px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .example {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .example h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .example pre {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎬 FilmyFly Admin</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <h1>{{.title}}</h1>
+            <p class="description">
+                Import multiple movies at once by pasting a JSON array. Each movie should have at minimum a
+                <code>title</code> and <code>slug</code>.
+            </p>
+
+            {{if .error}}
+            <div class="alert alert-error">{{.error}}</div>
+            {{end}}
+
+            <div class="example">
+                <h3>Example JSON Format:</h3>
+                <pre>[
+  {
+    "title": "Movie Title 1",
+    "slug": "movie-title-1",
+    "description": "Movie description",
+    "thumbnail": "https://example.com/image.jpg",
+    "genre": "Action",
+    "languages": "English, Hindi",
+    "duration": "2h 30m",
+    "releaseYear": 2024,
+    "cast": "Actor 1, Actor 2",
+    "downloadUrl": "https://example.com/download",
+    "keywords": "action, thriller"
+  },
+  {
+    "title": "Movie Title 2",
+    "slug": "movie-title-2",
+    "genre": "Comedy",
+    "releaseYear": 2024
+  }
+]</pre>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Movies JSON *</label>
+                    <textarea name="moviesJson" required placeholder="Paste your JSON array here..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn">Import Movies</button>
+                    <a href="/admin/movies" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - FilmyFly Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .logs-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .logs-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logs-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .logs-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .logs-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: #f5f5f5;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: #e9e9e9;
+            color: #333;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        .logs-content {
+            display: none;
+        }
+
+        .logs-content.active {
+            display: block;
+        }
+
+        .logs-container {
+            background: #1e1e1e;
+            border-radius: 5px;
+            padding: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .logs-text {
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎬 FilmyFly Admin</div>
+            <div class="user-info">
+                {{if .user}}
+                <span>{{index .user "email"}}</span>
+                <form method="POST" action="/admin/logout" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary">Logout</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>{{.title}}</h1>
+
+        <div class="logs-section">
+            <div class="logs-controls">
+                <div class="logs-info">
+                    <span id="logSize">Loading...</span>
+                    <span id="errorLogSize" style="margin-left: 20px;">Loading...</span>
+                </div>
+                <div class="logs-actions">
+                    <button type="button" class="btn btn-primary" onclick="refreshLogs()">🔄 Refresh</button>
+                    <button type="button" class="btn btn-warning" onclick="clearLogs('app')">Clear App Logs</button>
+                    <button type="button" class="btn btn-warning" onclick="clearLogs('error')">Clear Error Logs</button>
+                    <button type="button" class="btn btn-danger" onclick="clearLogs('all')">Clear All Logs</button>
+                    <a href="/admin/logs/download?type=app" class="btn btn-info" download>Download App Logs</a>
+                    <a href="/admin/logs/download?type=error" class="btn btn-info" download>Download Error Logs</a>
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="autoRefresh" checked> Auto-refresh (5s)
+                    </label>
+                </div>
+            </div>
+
+            <div class="logs-tabs">
+                <button class="tab-button active" data-tab="app" onclick="switchTab('app', this)">Application
+                    Logs</button>
+                <button class="tab-button" data-tab="error" onclick="switchTab('error', this)">Error Logs</button>
+            </div>
+
+            <div id="appLogsTab" class="logs-content active">
+                <div class="logs-container">
+                    <pre id="appLogs" class="logs-text">Loading logs...</pre>
+                </div>
+            </div>
+
+            <div id="errorLogsTab" class="logs-content">
+                <div class="logs-container">
+                    <pre id="errorLogs" class="logs-text">Loading logs...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let currentTab = 'app';
+
+        function switchTab(tab, buttonElement) {
+            currentTab = tab;
+
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+
+            document.querySelectorAll('.logs-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + 'LogsTab').classList.add('active');
+
+            refreshLogs();
+        }
+
+        function refreshLogs() {
+            fetch('/admin/logs/data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('appLogs').textContent = data.logs || 'No logs available.';
+                        document.getElementById('errorLogs').textContent = data.errorLogs || 'No error logs available.';
+                        document.getElementById('logSize').textContent = 'App Logs: ' + data.logSizeFormatted;
+                        document.getElementById('errorLogSize').textContent = 'Error Logs: ' + data.errorLogSizeFormatted;
+
+                        const activeTab = document.querySelector('.logs-content.active');
+                        const logsContainer = activeTab.querySelector('.logs-container');
+                        logsContainer.scrollTop = logsContainer.scrollHeight;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching logs:', error);
+                });
+        }
+
+        function clearLogs(type) {
+            const confirmMessage = type === 'all'
+                ? 'Are you sure you want to clear ALL logs? This action cannot be undone.'
+                : type === 'app'
+                    ? 'Are you sure you want to clear application logs?'
+                    : 'Are you sure you want to clear error logs?';
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            fetch('/admin/logs/clear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ type: type })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        refreshLogs();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error clearing logs: ' + error.message);
+                });
+        }
+
+        document.getElementById('autoRefresh').addEventListener('change', function (e) {
+            if (e.target.checked) {
+                autoRefreshInterval = setInterval(refreshLogs, 5000);
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        });
+
+        refreshLogs();
+
+        if (document.getElementById('autoRefresh').checked) {
+            autoRefreshInterval = setInterval(refreshLogs, 5000);
+        }
+
+        window.addEventListener('beforeunload', function () {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.netlify/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Caches
+.cache/
+.vite/
+.eslintcache
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

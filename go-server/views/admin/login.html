@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - FilmyFly</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, sendEmailVerification, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "{{.firebaseConfig.apiKey}}",
+            authDomain: "{{.firebaseConfig.authDomain}}",
+            projectId: "{{.firebaseConfig.projectId}}",
+            storageBucket: "{{.firebaseConfig.storageBucket}}",
+            messagingSenderId: "{{.firebaseConfig.messagingSenderId}}",
+            appId: "{{.firebaseConfig.appId}}"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const verificationButton = document.getElementById('sendVerificationButton');
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+
+            const showError = (message) => {
+                successDiv.style.display = 'none';
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            };
+
+            const showSuccess = (message) => {
+                errorDiv.style.display = 'none';
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            };
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+
+                    try {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Signing in...';
+                        errorDiv.style.display = 'none';
+                        successDiv.style.display = 'none';
+
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        // Force a fresh token so a newly verified email claim is sent
+                        // to the backend immediately after the user verifies it.
+                        const idToken = await userCredential.user.getIdToken(true);
+
+                        // Send token to backend
+                        const response = await fetch('/admin/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ idToken })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Redirect to admin dashboard
+                            window.location.href = '/admin';
+                        } else {
+                            throw new Error(data.error || 'Login failed');
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Sign In';
+                        showError(error.message || 'Login failed. Please try again.');
+                    }
+                });
+            }
+
+            if (verificationButton) {
+                verificationButton.addEventListener('click', async () => {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+
+                    if (!email || !password) {
+                        showError('Enter your Firebase email and password first.');
+                        return;
+                    }
+
+                    try {
+                        verificationButton.disabled = true;
+                        verificationButton.textContent = 'Sending verification email...';
+                        errorDiv.style.display = 'none';
+                        successDiv.style.display = 'none';
+
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        if (userCredential.user.emailVerified) {
+                            showSuccess('This Firebase email address is already verified. Sign in again to continue.');
+                            return;
+                        }
+
+                        await sendEmailVerification(userCredential.user);
+                        showSuccess('Verification email sent. Open the link in your email, then return here and sign in again.');
+                    } catch (error) {
+                        console.error('Verification email error:', error);
+                        showError(error.message || 'Could not send the verification email.');
+                    } finally {
+                        verificationButton.disabled = false;
+                        verificationButton.textContent = 'Send verification email';
+                    }
+                });
+            }
+        });
+    </script>
+    <style>
+        :root { --paper:#e9edf2; --ink:#17202a; --muted:#66717d; --accent:#ff5c35; --blue:#5865f2; --shadow:12px 12px 24px #cbd0d6,-12px -12px 24px #fff; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--paper);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: var(--paper);
+            padding: 2.8rem;
+            border-radius: 26px;
+            box-shadow: var(--shadow);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--ink);
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 0;
+            background: var(--paper);
+            box-shadow: inset 5px 5px 10px #cbd0d6, inset -5px -5px 10px #fff;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: inset 3px 3px 7px #cbd0d6, inset -3px -3px 7px #fff, 0 0 0 2px var(--blue);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 8px 10px 18px #cbd0d6, -6px -6px 14px #fff;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #ecfdf3;
+            color: #16794c;
+            border: 1px solid #a7e2c2;
+        }
+
+        .verification-button {
+            margin-top: 0.75rem;
+            background: var(--paper);
+            color: var(--blue);
+            border: 0;
+            box-shadow: 5px 5px 10px #cbd0d6, -5px -5px 10px #fff;
+        }
+
+        .verification-button:hover:not(:disabled) {
+            background: #e0e5ff;
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <h1><span style="color:var(--accent)">F</span> FilmyFly Admin</h1>
+        <p class="subtitle">A quiet space to shape what the world watches.</p>
+
+        {{if .error}}
+        <div class="alert alert-error" style="display:block;">{{.error}}</div>
+        {{end}}
+
+        <div id="error-message" class="alert alert-error"></div>
+        <div id="success-message" class="alert alert-success" role="status"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+
+            <button type="submit">Sign In</button>
+            <button id="sendVerificationButton" class="verification-button" type="button">Send verification email</button>
+        </form>
+        <p style="text-align:center;margin-top:1.5rem;font-size:.85rem;color:var(--muted)"><a href="/" style="color:var(--blue)">← Return to FilmyFly</a></p>
+    </div>
+</body>
+
+</html>

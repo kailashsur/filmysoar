@@ -1,0 +1,66 @@
+# Binaries
+filmyfly
+filmyfly.exe
+server.exe
+*.exe
+*.dll
+*.so
+*.dylib
+backup/
+
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+.gocache/
+
+# Go workspace file
+go.work
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Firebase and cloud credentials
+firebase-key.json
+firebase-service-account.json
+*-service-account.json
+*.pem
+*.key
+*.p12
+
+# Logs
+logs/
+*.log
+
+# Local database exports and backups
+backup/
+backups/
+*.sql
+*.sql.gz
+*.dump
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Local deployment/runtime files
+*.pid
+*.sock

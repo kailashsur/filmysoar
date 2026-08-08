@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{.title}}">
+  <title>{{.title}}</title>
+  <style>
+    :root {
+      --paper: #e9edf2;
+      --ink: #17202a;
+      --muted: #66717d;
+      --accent: #ff5c35;
+      --blue: #5865f2;
+      --shadow: 12px 12px 24px #cbd0d6, -12px -12px 24px #fff
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 500 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 0
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      font-size: 1.25rem
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--accent);
+      box-shadow: inset 3px 3px 6px #ff987e, inset -3px -3px 6px #d83b1b;
+      display: grid;
+      place-items: center;
+      color: #fff
+    }
+
+    .navlinks {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .navlinks a,
+    .pill {
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: var(--muted)
+    }
+
+    .navlinks a:hover {
+      box-shadow: inset 3px 3px 7px #cbd0d6, inset -3px -3px 7px #fff;
+      color: var(--ink)
+    }
+
+    .pill {
+      background: var(--ink);
+      color: #fff;
+      box-shadow: 5px 5px 10px #cbd0d6, -5px -5px 10px #fff
+    }
+
+    .hero {
+      min-height: 470px;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: center;
+      gap: 50px;
+      padding: 55px 0 75px
+    }
+
+    .hero>div:first-child {
+      width: 100%;
+      text-align: center;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-size: .75rem
+    }
+
+    .hero h1 {
+      font-size: clamp(3.2rem, 8vw, 7rem);
+      line-height: .92;
+      letter-spacing: -.085em;
+      margin: 18px 0 25px;
+      max-width: 720px
+    }
+
+    .hero h1 span {
+      color: var(--blue)
+    }
+
+    .hero p {
+      max-width: 500px;
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin-left: auto;
+      margin-right: auto
+    }
+
+    .actions {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 30px
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 15px 22px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 7px 7px 14px #cbd0d6, -7px -7px 14px #fff;
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .button:hover {
+      transform: translateY(-4px);
+      box-shadow: 10px 14px 20px #c5cbd1, -8px -8px 16px #fff
+    }
+
+    .button.secondary {
+      background: var(--paper);
+      color: var(--ink)
+    }
+
+    .orbital {
+      height: 350px;
+      border-radius: 45% 55% 52% 48%;
+      background: linear-gradient(140deg, #ff6842, #5865f2);
+      box-shadow: var(--shadow);
+      position: relative;
+      transform: rotate(-8deg);
+      animation: float 6s ease-in-out infinite
+    }
+
+    .orbital:before,
+    .orbital:after {
+      content: "";
+      position: absolute;
+      border: 2px solid rgba(255, 255, 255, .5);
+      border-radius: 50%;
+      inset: 15% -8%;
+      transform: rotate(35deg)
+    }
+
+    .orbital:after {
+      inset: 32% -18%;
+      transform: rotate(-40deg)
+    }
+
+    .orbital-card {
+      position: absolute;
+      z-index: 2;
+      right: 10%;
+      bottom: 14%;
+      background: var(--paper);
+      padding: 18px 20px;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      transform: rotate(8deg);
+      font-weight: 800
+    }
+
+    .orbital-card small {
+      display: block;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 4px
+    }
+
+    .section {
+      padding: 35px 0
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 22px
+    }
+
+    .section h2 {
+      font-size: 2rem;
+      letter-spacing: -.06em;
+      margin: 0
+    }
+
+    .section-head p {
+      color: var(--muted);
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px
+    }
+
+    .card {
+      min-width: 0;
+      background: var(--paper);
+      border-radius: 18px;
+      padding: 10px;
+      box-shadow: 7px 7px 15px #cbd0d6, -7px -7px 15px #fff;
+      transition: transform .3s, box-shadow .3s;
+      animation: rise .7s both
+    }
+
+    .card:hover {
+      transform: translateY(-8px) rotate(1deg);
+      box-shadow: 12px 15px 22px #c4c9cf, -9px -9px 18px #fff
+    }
+
+    .poster {
+      height: 220px;
+      border-radius: 13px;
+      overflow: hidden;
+      background: #d5dbe2;
+      display: grid;
+      place-items: center;
+      color: #929ca8;
+      font-size: 2rem
+    }
+
+    .poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .card h3 {
+      font-size: .98rem;
+      margin: 13px 5px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: .8rem;
+      margin: 0 5px 8px
+    }
+
+    .empty {
+      padding: 38px;
+      text-align: center;
+      color: var(--muted);
+      border-radius: 18px;
+      box-shadow: inset 5px 5px 12px #cbd0d6, inset -5px -5px 12px #fff
+    }
+
+    .footer {
+      padding: 70px 0 35px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #d7dce1;
+      margin-top: 40px;
+      font-size: .9rem
+    }
+
+    @keyframes float {
+      50% {
+        transform: rotate(-4deg) translateY(-14px)
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @media(max-width:850px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 25px
+      }
+
+      .orbital {
+        height: 260px
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .navlinks a:not(.pill) {
+        display: none
+      }
+    }
+
+    @media(max-width:430px) {
+      .wrap {
+        width: min(100% - 26px, 1180px)
+      }
+
+      .hero h1 {
+        font-size: 3.6rem
+      }
+
+      .grid {
+        gap: 13px
+      }
+
+      .poster {
+        height: 190px
+      }
+
+      .footer {
+        display: block
+      }
+
+      .footer span {
+        display: block;
+        margin-top: 8px
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+
+      *,
+      *:before,
+      *:after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <nav class="nav" aria-label="Main navigation"><a class="brand" href="/"><span class="mark">F</span>FILMYFLY</a>
+      <div class="navlinks"><a href="#trending">Trending</a><a href="#recent">Latest</a><a href="/docs">Docs</a><a
+          class="pill" href="/api/movies">Browse API →</a></div>
+    </nav>
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Your next watch is here</div>
+          <h1>Stories that <span>move</span> you.</h1>
+          <p>Discover a living collection of films, beautifully organised for the curious. Find something unforgettable
+            in a few clicks.</p>
+          <div class="actions"><a class="button" href="#recent">Explore films ↓</a><a class="button secondary"
+              href="/api/categories">Browse genres</a></div>
+        </div>
+      </section>
+      {{if .trendingMovies}}<section class="section" id="trending">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">What everyone is watching</div>
+            <h2>Trending now</h2>
+          </div>
+          <p>Fresh energy, bold stories.</p>
+        </div>
+        <div class="grid">{{range .trendingMovies}}<article class="card">
+            <div class="poster">{{if .Thumbnail}}<img src="{{.Thumbnail}}" alt="{{.Title}} poster"
+                loading="lazy">{{else}}✦{{end}}</div>
+            <h3>{{.Title}}</h3>
+            <p class="meta">{{if .ReleaseYear}}{{.ReleaseYear}}{{end}}{{if .Genre}} · {{.Genre}}{{end}}</p>
+          </article>{{end}}</div>
+      </section>{{end}}
+      <section class="section" id="recent">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Just landed</div>
+            <h2>Latest releases</h2>
+          </div>
+          <p>There is always more to discover.</p>
+        </div>{{if .recentMovies}}<div class="grid">{{range .recentMovies}}<article class="card">
+            <div class="poster">{{if .Thumbnail}}<img src="{{.Thumbnail}}" alt="{{.Title}} poster"
+                loading="lazy">{{else}}✦{{end}}</div>
+            <h3>{{.Title}}</h3>
+            <p class="meta">{{if .ReleaseYear}}{{.ReleaseYear}}{{end}}{{if .Genre}} · {{.Genre}}{{end}}</p>
+          </article>{{end}}</div>{{else}}<div class="empty">New stories are on the way. Check back soon.</div>{{end}}
+      </section>
+    </main>
+    <footer class="footer"><span>© FilmyFly · Made for movie people</span><span><a href="/api/home">API</a> · <a
+          href="/admin/login">Admin</a></span></footer>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,115 @@
+{
+  "site": {
+    "name": "FilmySoar",
+    "shortName": "FilmySoar",
+    "domain": "https://filmysoar.online",
+    "locale": "en_IN",
+    "language": "en",
+    "timezone": "Asia/Kolkata",
+    "trailingSlash": false
+  },
+  "branding": {
+    "logoText": "FilmySoar",
+    "logoMark": "F",
+    "logoUrl": "/favicon.svg",
+    "favicon": "/favicon.svg",
+    "themeColor": "#090b12",
+    "backgroundColor": "#090b12",
+    "accentColor": "#9185ff"
+  },
+  "seo": {
+    "titleTemplate": "%s | FilmySoar",
+    "defaultTitle": "FilmySoar - Discover your next movie",
+    "defaultDescription": "Discover the latest Hindi, Bollywood, Hollywood and South dubbed movies on FilmySoar.",
+    "keywords": [
+      "movies",
+      "Hindi movies",
+      "Bollywood movies",
+      "Hollywood movies",
+      "dual audio movies",
+      "web series"
+    ],
+    "robots": "index,follow",
+    "ogType": "website",
+    "twitterCard": "summary_large_image",
+    "defaultImage": "/og-image.jpg"
+  },
+  "social": {
+    "twitter": "",
+    "telegram": "",
+    "facebook": "",
+    "instagram": ""
+  },
+  "organization": {
+    "name": "FilmySoar",
+    "url": "https://filmysoar.online",
+    "logo": "https://filmysoar.online/favicon.svg",
+    "contactEmail": ""
+  },
+  "content": {
+    "homeHeadline": "Stories for every mood.",
+    "homeDescription": "Find movies and series you will want to talk about tomorrow.",
+    "copyrightYear": 2025,
+    "copyrightText": "Stories worth staying for."
+  },
+  "pages": {
+    "about": {
+      "path": "/about",
+      "title": "About Us",
+      "eyebrow": "THE FILMYFLY STORY",
+      "intro": "FilmyFly makes movie discovery simple, fast, and enjoyable.",
+      "sections": [
+        { "heading": "Our purpose", "body": "We organize movie and series information so visitors can quickly discover stories that match their mood." },
+        { "heading": "Built for people", "body": "FilmyFly is designed mobile-first, with a clean interface, fast pages, and useful search and category browsing." }
+      ]
+    },
+    "contact": {
+      "path": "/contact",
+      "title": "Contact Us",
+      "eyebrow": "LET'S TALK",
+      "intro": "Have a question, correction, or partnership idea? Contact the FilmyFly team.",
+      "email": "contact@your-domain.com",
+      "sections": [
+        { "heading": "General support", "body": "For website feedback, broken links, metadata corrections, or general questions, email us with the relevant page URL." }
+      ]
+    },
+    "privacy": {
+      "path": "/privacy-policy",
+      "title": "Privacy Policy",
+      "eyebrow": "YOUR PRIVACY",
+      "intro": "This policy explains how FilmyFly handles information when you use the website.",
+      "sections": [
+        { "heading": "Information we collect", "body": "FilmyFly does not require an account for browsing. Limited technical information may be processed by hosting, analytics, security, or API providers to operate and protect the website." },
+        { "heading": "Cookies and analytics", "body": "If analytics or cookies are enabled, they are used to understand website performance and improve the experience. You can control cookies through your browser settings." },
+        { "heading": "Third-party links", "body": "The website may link to third-party services. Their privacy practices are governed by their own policies." },
+        { "heading": "Contact", "body": "For privacy questions or data requests, contact the website owner using the email listed on the Contact Us page." }
+      ]
+    },
+    "dmca": {
+      "path": "/dmca",
+      "title": "DMCA",
+      "eyebrow": "COPYRIGHT NOTICE",
+      "intro": "FilmyFly respects copyright owners and responds to valid copyright complaints.",
+      "sections": [
+        { "heading": "Submit a notice", "body": "Send a written notice identifying the copyrighted work, the allegedly infringing URL, your contact details, a good-faith statement, and confirmation that the information is accurate." },
+        { "heading": "Where to send it", "body": "Email a complete copyright notice to the contact address listed on the Contact Us page. Incomplete notices may delay processing." }
+      ]
+    },
+    "movieRequest": {
+      "path": "/movie-request",
+      "title": "Movie Request",
+      "eyebrow": "TELL US WHAT TO ADD",
+      "intro": "Can’t find a movie or series? Send us the title and useful details.",
+      "email": "request@your-domain.com",
+      "sections": [
+        { "heading": "Include these details", "body": "Please include the exact title, release year, language, season or episode information, and any alternate title. Requests are reviewed when possible and are not guaranteed." }
+      ]
+    }
+  },
+  "instructions": {
+    "changeBrand": "Update site.name, branding.logoText, branding.logoMark, and organization.name.",
+    "changeDomain": "Update site.domain, organization.url, and organization.logo together.",
+    "changeSeo": "Update seo.defaultTitle, seo.defaultDescription, seo.keywords, and seo.defaultImage.",
+    "secrets": "Never put API keys, database credentials, or private tokens in this file."
+  }
+}

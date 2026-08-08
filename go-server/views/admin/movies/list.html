@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - FilmyFly Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-trending {
+            background: #ff6b6b;
+        }
+
+        .btn-trending:hover {
+            background: #ee5a52;
+        }
+
+        .search-form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input, .filter-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .filter-select {
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .movies-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .movies-table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .movies-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .movies-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .trending-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎬 FilmyFly Admin</div>
+            <div class="user-info">
+                {{if .user}}
+                <span>{{index .user "email"}}</span>
+                <form method="POST" action="/admin/logout" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary">Logout</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>{{.title}}</h1>
+            <div class="header-actions">
+                <a href="/admin" class="btn btn-secondary">Dashboard</a>
+                <a href="/admin/movies/bulk-add" class="btn btn-secondary">Bulk Add</a>
+                <a href="/admin/movies/add" class="btn">Add Movie</a>
+            </div>
+        </div>
+
+        {{if .success}}
+        <div class="alert alert-success">{{.success}}</div>
+        {{end}}
+
+        {{if .error}}
+        <div class="alert alert-error">{{.error}}</div>
+        {{end}}
+
+        <form method="GET" class="search-form">
+            <div class="search-grid">
+                <input type="text" name="search" placeholder="Search movies by title..." value="{{.search}}"
+                    class="search-input">
+                
+                <select name="category" class="filter-select">
+                    <option value="">All Categories</option>
+                    {{range .categories}}
+                    <option value="{{.ID}}" {{if eq $.category (printf "%d" .ID)}}selected{{end}}>{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+            
+            <div class="search-actions">
+                <button type="submit" class="btn">Apply Filters</button>
+                {{if or .search .category}}
+                <a href="/admin/movies" class="btn btn-secondary">Clear Filters</a>
+                {{end}}
+            </div>
+        </form>
+
+        {{if .trendingMovies}}
+        <div class="section">
+            <h2>🔥 Trending Movies ({{len .trendingMovies}})</h2>
+            {{if gt (len .trendingMovies) 0}}
+            <table class="movies-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Slug</th>
+                        <th>Genre</th>
+                        <th>Year</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .trendingMovies}}
+                    <tr>
+                        <td>{{.ID}}</td>
+                        <td><strong>{{.Title}}</strong></td>
+                        <td>{{.Slug}}</td>
+                        <td>{{if .Genre}}{{.Genre}}{{else}}N/A{{end}}</td>
+                        <td>{{if .ReleaseYear}}{{.ReleaseYear}}{{else}}N/A{{end}}</td>
+                        <td class="actions">
+                            <form method="POST" action="/admin/movies/trending/remove/{{.ID}}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-trending">Remove Trending</button>
+                            </form>
+                            <a href="/admin/movies/edit/{{.ID}}" class="btn btn-sm btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{else}}
+            <p class="empty-state">No trending movies yet. Add movies to trending from the list below.</p>
+            {{end}}
+        </div>
+        {{end}}
+
+        <div class="section">
+            <h2>All Movies</h2>
+            {{if .movies}}
+            <table class="movies-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Slug</th>
+                        <th>Genre</th>
+                        <th>Year</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .movies}}
+                    <tr>
+                        <td>{{.ID}}</td>
+                        <td>{{.Title}}</td>
+                        <td>{{.Slug}}</td>
+                        <td>{{if .Genre}}{{.Genre}}{{else}}N/A{{end}}</td>
+                        <td>{{if .ReleaseYear}}{{.ReleaseYear}}{{else}}N/A{{end}}</td>
+                        <td>
+                            {{if .IsTrending}}
+                            <span class="trending-badge">🔥 Trending</span>
+                            {{else}}
+                            <span>-</span>
+                            {{end}}
+                        </td>
+                        <td class="actions">
+                            {{if .IsTrending}}
+                            <form method="POST" action="/admin/movies/trending/remove/{{.ID}}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-trending">Remove Trending</button>
+                            </form>
+                            {{else}}
+                            <form method="POST" action="/admin/movies/trending/add/{{.ID}}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm">Add Trending</button>
+                            </form>
+                            {{end}}
+                            <a href="/admin/movies/edit/{{.ID}}" class="btn btn-sm btn-secondary">Edit</a>
+                            <form method="POST" action="/admin/movies/delete/{{.ID}}" style="display:inline;"
+                                onsubmit="return confirm('Delete this movie?');">
+                                <button type="submit" class="btn btn-sm btn-delete">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+
+            {{if gt .totalPages 1}}
+            <div class="pagination">
+                {{if gt .currentPage 1}}
+                <a href="/admin/movies?page={{sub .currentPage 1}}{{if .search}}&search={{.search}}{{end}}{{if .category}}&category={{.category}}{{end}}"
+                    class="btn">Previous</a>
+                {{end}}
+                <span>Page {{.currentPage}} of {{.totalPages}}</span>
+                {{if lt .currentPage .totalPages}}
+                <a href="/admin/movies?page={{add .currentPage 1}}{{if .search}}&search={{.search}}{{end}}{{if .category}}&category={{.category}}{{end}}"
+                    class="btn">Next</a>
+                {{end}}
+            </div>
+            {{end}}
+
+            {{else}}
+            <p class="empty-state">No movies found. <a href="/admin/movies/add">Add your first movie</a></p>
+            {{end}}
+        </div>
+    </div>
+</body>
+
+</html>

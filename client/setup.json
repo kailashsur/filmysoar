@@ -1,0 +1,70 @@
+{
+  "project": {
+    "name": "filmyfly-home",
+    "version": "1.0.0",
+    "framework": "Astro",
+    "output": "server",
+    "adapter": "@astrojs/node",
+    "nodeVersion": ">=18.17.0"
+  },
+  "environment": {
+    "file": ".env",
+    "variables": {
+      "PUBLIC_API_BASE_URL": {
+        "required": true,
+        "example": "https://api.example.com",
+        "description": "Base URL of the FilmyFly backend API without a trailing slash."
+      }
+    },
+    "localExample": {
+      "PUBLIC_API_BASE_URL": "http://127.0.0.1:3000"
+    }
+  },
+  "api": {
+    "method": "GET",
+    "endpoints": {
+      "home": "/api/home",
+      "search": "/api/search?q={query}&page={page}",
+      "categories": "/api/categories",
+      "category": "/api/categories/{slug}?page={page}",
+      "movie": "/api/movies/{slug}"
+    },
+    "pagination": {
+      "defaultPage": 1,
+      "defaultLimit": 20,
+      "queryParameter": "page",
+      "responsePath": "data.pagination"
+    }
+  },
+  "scripts": {
+    "install": "npm install",
+    "development": "npm run dev",
+    "build": "npm run build",
+    "preview": "npm run preview"
+  },
+  "pages": {
+    "home": "/",
+    "search": "/search?q={query}",
+    "categories": "/categories",
+    "category": "/categories/{slug}",
+    "movie": "/movie/{slug}"
+  },
+  "deployment": {
+    "buildCommand": "npm run build",
+    "startCommand": "node ./dist/server/entry.mjs",
+    "outputDirectory": "dist",
+    "healthCheck": "/",
+    "requiredBeforeDeploy": [
+      "Set PUBLIC_API_BASE_URL to the production API URL",
+      "Confirm the production API allows requests from the website domain",
+      "Run npm run build successfully",
+      "Verify home, search, category, and movie routes"
+    ]
+  },
+  "rules": {
+    "keepSecretsOutOfRepository": true,
+    "useUtf8Encoding": true,
+    "mobileFirst": true,
+    "apiFallbackTimeoutMs": 3000
+  }
+}

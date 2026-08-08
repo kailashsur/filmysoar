@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - FilmyFly Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎬 FilmyFly Admin</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <h1>{{.title}}</h1>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" name="title" value="{{.movie.Title}}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Slug *</label>
+                    <input type="text" name="slug" value="{{.movie.Slug}}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="categoryId">
+                        <option value="">No Category</option>
+                        {{range .categories}}
+                        <option value="{{.ID}}" {{if $.movie.CategoryID}}{{if eq $.movie.CategoryID .ID}}selected{{end}}{{end}}>{{.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description">{{if .movie.Description}}{{.movie.Description}}{{end}}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Thumbnail URL</label>
+                    <input type="url" name="thumbnail" value="{{if .movie.Thumbnail}}{{.movie.Thumbnail}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Genre</label>
+                    <input type="text" name="genre" value="{{if .movie.Genre}}{{.movie.Genre}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Languages</label>
+                    <input type="text" name="languages" value="{{if .movie.Languages}}{{.movie.Languages}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Duration</label>
+                    <input type="text" name="duration" value="{{if .movie.Duration}}{{.movie.Duration}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Release Year</label>
+                    <input type="number" name="releaseYear"
+                        value="{{if .movie.ReleaseYear}}{{.movie.ReleaseYear}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Cast</label>
+                    <input type="text" name="cast" value="{{if .movie.Cast}}{{.movie.Cast}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Download URL</label>
+                    <input type="url" name="downloadUrl" value="{{if .movie.DownloadURL}}{{.movie.DownloadURL}}{{end}}">
+                </div>
+
+                <div class="form-group">
+                    <label>Keywords</label>
+                    <input type="text" name="keywords" value="{{if .movie.Keywords}}{{.movie.Keywords}}{{end}}">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn">Update Movie</button>
+                    <a href="/admin/movies" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - FilmyFly Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        small {
+            display: block;
+            margin-top: 0.5rem;
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎬 FilmyFly Admin</div>
+            <div class="user-info">
+                {{if .user}}
+                <span>{{index .user "email"}}</span>
+                <form method="POST" action="/admin/logout" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary">Logout</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <h1>{{.title}}</h1>
+
+            {{if .success}}
+            <div class="alert alert-success">{{.success}}</div>
+            {{end}}
+
+            {{if .error}}
+            <div class="alert alert-error">{{.error}}</div>
+            {{end}}
+
+            <form method="POST">
+                <div class="form-section">
+                    <h2>General Settings</h2>
+
+                    <div class="form-group">
+                        <label>Site URL</label>
+                        <input type="url" name="siteUrl" value="{{index .settings "siteUrl"}}"
+                            placeholder="https://filmyfly.work">
+                        <small>Your website URL (without trailing slash). Used in meta tags, Open Graph, Twitter Card,
+                            canonical URLs, and structured data.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Download Redirect URL</label>
+                        <input type="url" name="downloadRedirectUrl" value="{{index .settings "downloadRedirectUrl"}}"
+                            placeholder="">
+                        <small>This URL will be used as a redirect link for movie downloads. The actual download URL
+                            will be appended as a query parameter.</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Google Tag Manager</h2>
+
+                    <div class="form-group">
+                        <label>Google Tag Manager Code (for &lt;head&gt; section)</label>
+                        <textarea name="googleTagManagerHead" rows="5"
+                            placeholder="<!-- Google Tag Manager -->">{{index .settings "googleTagManagerHead"}}</textarea>
+                        <small>Paste the Google Tag Manager code that goes in the &lt;head&gt; section. This will be
+                            placed right after the opening &lt;head&gt; tag.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Google Tag Manager Noscript Code (for &lt;body&gt; section)</label>
+                        <textarea name="googleTagManagerBody" rows="3"
+                            placeholder="<!-- Google Tag Manager (noscript) -->">{{index .settings "googleTagManagerBody"}}</textarea>
+                        <small>Paste the Google Tag Manager noscript code that goes right after the opening &lt;body&gt;
+                            tag.</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Google Analytics</h2>
+
+                    <div class="form-group">
+                        <label>Google Analytics Code (gtag.js)</label>
+                        <textarea name="googleAnalytics" rows="8"
+                            placeholder="<!-- Google tag (gtag.js) -->">{{index .settings "googleAnalytics"}}</textarea>
+                        <small>Paste your complete Google Analytics (gtag.js) code. This will be placed in the
+                            &lt;head&gt; section.</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Google Search Console</h2>
+
+                    <div class="form-group">
+                        <label>Google Search Console Verification Meta Tag</label>
+                        <textarea name="googleSearchConsole" rows="2"
+                            placeholder='<meta name="google-site-verification" content="XXXXXXXXXXXXXXXXXXXXX" />'>{{index .settings "googleSearchConsole"}}</textarea>
+                        <small>Paste the Google Search Console verification meta tag. This will be placed in the
+                            &lt;head&gt; section.</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Ad Codes</h2>
+
+                    <div class="form-group">
+                        <label>Google AdSense Code</label>
+                        <textarea name="adsenseCode" rows="6"
+                            placeholder='<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>'>{{index .settings "adsenseCode"}}</textarea>
+                        <small>Paste your Google AdSense code (auto ads or manual ad units). This will be placed in the
+                            &lt;head&gt; section.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Adstera Ad Code</label>
+                        <textarea name="adsteraCode" rows="6"
+                            placeholder='<script type="text/javascript">// Adstera ad code here</script>'>{{index .settings "adsteraCode"}}</textarea>
+                        <small>Paste your Adstera ad code. This will be placed in the &lt;head&gt; section.</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn">Save Settings</button>
+                    <a href="/admin" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
