@@ -1,29 +1,29 @@
 [Unit]
-Description=FilmyFly Go Fiber Application
-After=network.target postgresql.service
+Description=FilmySoar Go Fiber Application
+After=network-online.target postgresql.service
 Wants=postgresql.service
 
 [Service]
 Type=simple
-User=www-data
-Group=www-data
-WorkingDirectory=/opt/filmyfly
-ExecStart=/opt/filmyfly/filmyfly
+User=filmysoar
+Group=filmysoar
+WorkingDirectory=/opt/filmysoar/go-server
+ExecStart=/opt/filmysoar/go-server/filmysoar-server
 Restart=always
 RestartSec=5
-StandardOutput=append:/var/log/filmyfly/app.log
-StandardError=append:/var/log/filmyfly/error.log
+StandardOutput=append:/var/log/filmysoar/app.log
+StandardError=append:/var/log/filmysoar/error.log
 
 # Environment variables
 Environment="PORT=3000"
-EnvironmentFile=/opt/filmyfly/.env
+EnvironmentFile=/opt/filmysoar/go-server/.env
 
 # Security settings
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/log/filmyfly /opt/filmyfly/logs
+ReadWritePaths=/var/log/filmysoar /opt/filmysoar/go-server/logs
 
 [Install]
 WantedBy=multi-user.target
