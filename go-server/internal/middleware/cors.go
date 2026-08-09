@@ -10,12 +10,15 @@ import (
 // CORS returns CORS middleware configured for the application
 func CORS(cfg *config.Config) fiber.Handler {
 	allowedOrigins := []string{
-		"http://localhost:3000",
-		"http://localhost:4321",
+		
 		"https://filmyfly.work",
 		"https://www.filmyfly.work",
 		"https://filmyflyhd.space",
 		"https://www.filmyflyhd.space",
+		"https://filmyflyhd.online",
+		"https://filmysoar.online",
+		"https://www.filmysoar.online",
+		
 	}
 
 	if cfg.FrontendURL != "" {
