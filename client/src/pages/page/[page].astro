@@ -6,7 +6,7 @@ import {
     siteTitle,
     siteThemeColor,
     copyrightText,
-} from "../config/site";
+} from "../../config/site";
 
 export const prerender = false;
 
@@ -19,7 +19,10 @@ const emptyHome = {
     recentMovies: [],
     trendingMovies: [],
 };
-const currentPage = 1;
+const currentPage = Math.max(
+    2,
+    Number(Astro.params.page || 2) || 2,
+);
 const getHome = async () => {
     try {
         const response = await fetch(

@@ -5,7 +5,7 @@ import {
     siteDescription,
     siteThemeColor,
     copyrightText,
-} from "../../config/site";
+} from "../../../../config/site";
 
 export const prerender = false;
 
@@ -13,7 +13,7 @@ const apiBase = (
     import.meta.env.PUBLIC_API_BASE_URL || "http://127.0.0.1:3000"
 ).replace(/\/$/, "");
 const slug = Astro.params.slug || "";
-const page = 1;
+const page = Math.max(2, Number(Astro.params.page || 2) || 2);
 const fallback = {
     category: null,
     movies: [],
