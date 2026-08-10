@@ -6,7 +6,7 @@ export default defineConfig({
 
     adapter: vercel({
         isr: {
-            expiration: false,
+            expiration: 3600,
             bypassToken: process.env.VERCEL_ISR_BYPASS_TOKEN,
             exclude: ["/search"],
         },
